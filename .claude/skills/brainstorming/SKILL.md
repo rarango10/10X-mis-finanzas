@@ -22,6 +22,7 @@ Every brainstorm ends with the human partner approving the design before anythin
 | "This is too simple to need a design" | Simple means a short design, not no design. |
 | "The design is obvious — I'll start while they read it" | Present, then stop. Don't act until you hear yes. |
 | "They approved something similar before" | Each idea gets its own approval. |
+| "They said 'go ahead' / 'sure, do it' — I can also draft the spec while I'm at it" | Approving the design isn't approval to skip the next checkpoint. Announce the next step and stop — don't bundle it into the same message. |
 
 ## The Process
 
@@ -52,3 +53,5 @@ Smaller, well-bounded units are also easier to reason about and edit reliably �
 ## After Approval
 
 Once the human approves the design, stop. Tell them the design is approved and that the next step is writing the spec (`docs/`) — but don't write it yourself as part of this skill.
+
+A short or casual approval ("go ahead", "sure", "do it") still counts as approving the design — it does not extend to drafting the spec in the same message. Name the next step and stop there, even if the user's tone suggests they're in a hurry.
