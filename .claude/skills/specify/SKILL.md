@@ -1,13 +1,13 @@
 ---
 name: specify
-description: "Escribe el spec de una feature en dos fases, cada una con su compuerta de aprobación: primero requirements.md con criterios de aceptación en notación EARS, después design.md con arquitectura, interfaces, modelos de datos, errores y estrategia de testing. Usá este skill apenas haya un diseño aprobado en brainstorming, o cuando la persona diga 'escribamos el spec', 'documentemos los requisitos', 'hagamos el spec de X', 'pasemos a la spec', 'definamos los criterios de aceptación' o pida dejar por escrito qué tiene que hacer una feature antes de programarla. Es el paso siguiente al brainstorming y previo a la implementación TDD — no escribe código ni tareas."
+description: "Escribe el spec de una feature en tres fases, cada una con su compuerta de aprobación: requirements.md con criterios de aceptación en notación EARS, design.md con arquitectura, interfaces, modelos de datos, errores y estrategia de testing, y tasks.md con el plan de implementación y su bitácora. Usá este skill apenas haya un diseño aprobado en brainstorming, o cuando la persona diga 'escribamos el spec', 'documentemos los requisitos', 'hagamos el spec de X', 'pasemos a la spec', 'definamos los criterios de aceptación', 'desglosemos las tareas', 'armemos el plan de implementación' o pida dejar por escrito qué tiene que hacer una feature antes de programarla. Es el paso siguiente al brainstorming y previo a la implementación TDD — planifica y documenta el trabajo, pero no escribe código."
 ---
 
 # Specify
 
-Convertir una idea ya clarificada en un spec ejecutable: primero **qué** tiene que hacer el sistema (`requirements.md`), después **cómo** se construye (`design.md`).
+Convertir una idea ya clarificada en un spec ejecutable: primero **qué** tiene que hacer el sistema (`requirements.md`), después **cómo** se construye (`design.md`), y por último **en qué orden se hace** (`tasks.md`).
 
-El workflow del proyecto es: brainstorm → **spec (este skill)** → implementación TDD → verificación → commit. Este skill cubre solo el spec, y dentro del spec solo esas dos fases. Las tareas de implementación y el código quedan fuera a propósito.
+El workflow del proyecto es: brainstorm → **spec (este skill)** → implementación TDD → verificación → commit. Este skill cubre las tres fases del spec. Escribir el código queda fuera a propósito: `tasks.md` planifica el trabajo y después registra lo que pasó al hacerlo, pero la implementación es otro paso.
 
 ## Antes de empezar
 
@@ -53,18 +53,37 @@ Después:
 4. **Dejá registro de lo descartado**: qué alternativas consideraste y por qué no. Eso evita rediscutir lo mismo en tres semanas.
 5. **Presentá y esperá aprobación**, igual que en la fase 1.
 
-## Después de la aprobación del design
+## Fase 3 — Tasks
 
-Pará ahí. Decí que el spec quedó completo y que el paso siguiente es la implementación con TDD — pero no la arranques: es otro paso del workflow, no parte de este skill.
+Con el design aprobado ya sabés qué se construye y cómo; falta en qué orden, y dejar preparado el lugar donde va a quedar registrado lo que realmente pase al construirlo.
 
-Una aprobación corta o informal ("dale", "va", "listo") aprueba el documento que presentaste, nada más. No la leas como permiso para encadenar la fase siguiente en el mismo mensaje: aprobar los requirements no es aprobar el design, y aprobar el design no es pedir código.
+1. **Escribí `tasks.md`** en la misma carpeta, siguiendo `assets/tasks-template.md`.
+2. **Una tarea, un ciclo de TDD**: test que falla → implementar → test que pasa, del tamaño que se pueda terminar de una sentada. Si una tarea necesita tres tests distintos para tener sentido, probablemente sean tres tareas.
+3. **Ordenalas para poder parar en cualquier punto**: cada tarea debería dejar el repo funcionando y en verde. Un plan que solo sirve si se completa entero no sirve como plan.
+4. **Cerrá la cadena de trazabilidad**: cada tarea dice qué criterios cubre. Después mirá el cruce en las dos direcciones — una tarea que no cubre ningún criterio es alcance que nadie pidió, y un criterio sin ninguna tarea es o un olvido o algo que hay que declarar fuera de alcance explícitamente. Ese cruce es la razón de numerar los criterios desde la fase 1.
+5. **Presentá y esperá aprobación**, igual que en las fases anteriores.
+
+Al planificar, cada tarea tiene solo objetivo, criterios que cubre y primer test. **La bitácora se completa durante la implementación, no ahora** — y no la escribas vos como parte de este skill: acá dejás la estructura preparada, no el relato de un trabajo que todavía no ocurrió.
+
+## Para qué sirve la bitácora
+
+Es la parte del spec que más se subestima. El código terminado muestra el resultado y nunca la alternativa descartada; a los seis meses nadie se acuerda de por qué algo quedó así, y se termina rediscutiendo lo mismo o —peor— revirtiendo una decisión que tenía una buena razón.
+
+De lo que se anota, hay una categoría que no puede quedar en silencio: **el desvío respecto del design**. Si la implementación terminó haciendo algo distinto de lo diseñado, se registra en la tarea y se actualiza `design.md`. Un desvío sin registrar rompe la trazabilidad sin que se note, porque el documento sigue leyéndose como si describiera lo que existe.
+
+## Después de la aprobación de las tasks
+
+Pará ahí. Decí que el spec quedó completo —`requirements.md`, `design.md` y `tasks.md`— y que el paso siguiente es la implementación con TDD, empezando por el primer test rojo de T1. No la arranques: es otro paso del workflow, no parte de este skill.
+
+Una aprobación corta o informal ("dale", "va", "listo") aprueba el documento que presentaste, nada más. No la leas como permiso para encadenar la fase siguiente en el mismo mensaje: aprobar los requirements no es aprobar el design, aprobar el design no es aprobar las tasks, y aprobar las tasks no es pedir código.
 
 ## Si los requisitos cambian después
 
-Cuando aparece un cambio de requisitos y el `design.md` ya existe, actualizá los dos y decí explícitamente qué partes del diseño quedaron afectadas. Un design que quedó describiendo requisitos viejos es peor que no tenerlo, porque se lee como si estuviera vigente.
+Cuando aparece un cambio de requisitos y ya existen los documentos siguientes, actualizá todos los que queden afectados y decí explícitamente cuáles y en qué. Un criterio nuevo suele arrastrar una decisión de diseño y una tarea; uno que se elimina puede dejar una tarea sin propósito. Un documento que quedó describiendo requisitos viejos es peor que no tenerlo, porque se lee como si estuviera vigente.
 
 ## Archivos de este skill
 
 - `assets/requirements-template.md` — estructura de `requirements.md`
 - `assets/design-template.md` — estructura de `design.md`
+- `assets/tasks-template.md` — estructura de `tasks.md` (plan + bitácora)
 - `references/ears-patterns.md` — los 5 patrones EARS, ejemplos del dominio y errores típicos

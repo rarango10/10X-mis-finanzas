@@ -16,7 +16,7 @@ npm test            # vitest run
 
 ## Workflow de trabajo
 
-brainstorm definición (skill `brainstorming`) → spec (skill `specify`: `requirements.md` + `design.md` en `docs/AAAA-MM-DD-<feature>/`) → ejecución (TDD) → verificación → commit
+brainstorm definición (skill `brainstorming`) → spec (skill `specify`: `requirements.md` + `design.md` + `tasks.md` en `docs/AAAA-MM-DD-<feature>/`) → ejecución (TDD) → verificación → commit
 
 ## Reglas
 
