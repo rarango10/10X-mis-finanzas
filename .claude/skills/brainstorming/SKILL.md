@@ -52,6 +52,6 @@ Smaller, well-bounded units are also easier to reason about and edit reliably �
 
 ## After Approval
 
-Once the human approves the design, stop. Tell them the design is approved and that the next step is the **`specify` skill**, which turns the approved design into a spec — `requirements.md`, then `design.md`, then `tasks.md` — under `docs/AAAA-MM-DD-<feature>/`. Name it, don't start it: which skill comes next is information they need, deciding when to run it is theirs.
+Once the human approves the design, stop. Tell them the design is approved and that the next step is the **`specify` skill**, which turns the approved design into `requirements.md` and then `design.md`, under `docs/AAAA-MM-DD-<feature>/`. The task plan (`tasks.md`) comes after that and is a separate step — the `planning-tasks` skill — so don't promise it as part of `specify`. Name the next skill, don't start it: which skill comes next is information they need, deciding when to run it is theirs.
 
 A short or casual approval ("go ahead", "sure", "do it") still counts as approving the design — it does not extend to drafting the spec in the same message. Name the next step and stop there, even if the user's tone suggests they're in a hurry.

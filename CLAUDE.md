@@ -16,12 +16,25 @@ npm test            # vitest run
 
 ## Workflow de trabajo
 
-brainstorm definición (skill `brainstorming`) → spec: `requirements.md` + `design.md` (skill `specify`) → plan de tareas: `tasks.md` (skill `planning-tasks`, con el subagente `planner`) → ejecución (TDD) → verificación → commit
+| # | Documento | Lo produce | Se pide diciendo |
+|---|-----------|------------|------------------|
+| 1 | diseño acordado (en el chat, sin archivo) | skill `brainstorming` | «quiero agregar X», «cómo construimos Y» |
+| 2 | `requirements.md` | skill `specify`, fase 1 | «escribamos el spec», «definamos los criterios» |
+| 3 | `design.md` | skill `specify`, fase 2 | «pasemos al diseño» |
+| 4 | `tasks.md` | skill `planning-tasks` → workflow `tasks-fanout` | «planeemos las tareas», «desglosemos las tareas», «armemos el plan» |
+| 5 | código + tests | TDD, a mano | «implementemos T3» |
 
 Todo en `docs/AAAA-MM-DD-<feature>/`.
+
+Cada documento tiene **un solo productor**: si una frase te deja dudando entre dos skills, gana
+esta tabla. Cada paso espera aprobación humana antes del siguiente, y ningún skill arranca al que
+le sigue — solo lo nombra.
 
 ## Reglas
 
 - Una feature a la vez. No abrir frentes en paralelo.
 - TDD: test que falla → implementar → test que pasa.
 - No agregar dependencias sin necesidad.
+- `tasks.md` lo escribe **solo** el workflow `tasks-fanout`, nunca a mano ni con otro subagente. El
+  workflow revisa las tareas en paralelo con agentes de solo lectura y las materializa con un
+  único escritor; planificar por afuera reintroduce el segundo escritor que eso elimina.

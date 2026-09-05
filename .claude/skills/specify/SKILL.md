@@ -1,13 +1,13 @@
 ---
 name: specify
-description: "Escribe el spec de una feature en tres fases, cada una con su compuerta de aprobación: requirements.md con criterios de aceptación en notación EARS, design.md con arquitectura, interfaces, modelos de datos, errores y estrategia de testing, y tasks.md con el plan de implementación y su bitácora. Usá este skill apenas haya un diseño aprobado en brainstorming, o cuando la persona diga 'escribamos el spec', 'documentemos los requisitos', 'hagamos el spec de X', 'pasemos a la spec', 'definamos los criterios de aceptación', 'desglosemos las tareas', 'armemos el plan de implementación' o pida dejar por escrito qué tiene que hacer una feature antes de programarla. Es el paso siguiente al brainstorming y previo a la implementación TDD — planifica y documenta el trabajo, pero no escribe código."
+description: "Escribe el spec de una feature en dos fases, cada una con su compuerta de aprobación: requirements.md con criterios de aceptación en notación EARS, y design.md con arquitectura, interfaces, modelos de datos, errores y estrategia de testing. El plan de tareas (tasks.md) NO lo hace este skill: es el paso siguiente y lo hace el skill planning-tasks. Usá este skill apenas haya un diseño aprobado en brainstorming, o cuando la persona diga 'escribamos el spec', 'documentemos los requisitos', 'hagamos el spec de X', 'pasemos a la spec', 'definamos los criterios de aceptación', 'pasemos al diseño' o pida dejar por escrito qué tiene que hacer una feature antes de programarla. Es el paso siguiente al brainstorming y previo al plan de tareas — documenta qué hay que construir y cómo, pero no escribe código ni planifica las tareas."
 ---
 
 # Specify
 
-Convertir una idea ya clarificada en un spec ejecutable: primero **qué** tiene que hacer el sistema (`requirements.md`), después **cómo** se construye (`design.md`), y por último **en qué orden se hace** (`tasks.md`).
+Convertir una idea ya clarificada en un spec ejecutable: primero **qué** tiene que hacer el sistema (`requirements.md`), después **cómo** se construye (`design.md`). **En qué orden se hace** (`tasks.md`) viene después y no es trabajo de este skill: lo arma el skill `planning-tasks` con el workflow `tasks-fanout`.
 
-El workflow del proyecto es: brainstorm → **spec (este skill)** → implementación TDD → verificación → commit. Este skill cubre las tres fases del spec. Escribir el código queda fuera a propósito: `tasks.md` planifica el trabajo y después registra lo que pasó al hacerlo, pero la implementación es otro paso.
+El workflow del proyecto es: brainstorm → **requirements + design (este skill)** → plan de tareas (`planning-tasks`) → implementación TDD → verificación → commit. Este skill cubre las dos primeras fases del spec y se detiene ahí.
 
 ## Antes de empezar
 
@@ -53,21 +53,26 @@ Después:
 4. **Dejá registro de lo descartado**: qué alternativas consideraste y por qué no. Eso evita rediscutir lo mismo en tres semanas.
 5. **Presentá y esperá aprobación**, igual que en la fase 1.
 
-Una vez aprobado el design, decí que el paso siguiente es el skill **`planning-tasks`**, que arma y itera `tasks.md` orquestando el subagente `planner` (tarea por tarea, hasta que el plan queda con cobertura completa y bien dimensionado). Nombralo, no lo arranques: igual que el propio `brainstorming` nombra a `specify` sin invocarlo, encadenarlo acá se saltearía la compuerta de aprobación del design que acaba de pasar.
+Una vez aprobado el design, decí que el paso siguiente es el skill **`planning-tasks`**, que comprueba el spec y lanza el workflow dinámico `tasks-fanout`: un revisor por tarea en paralelo, un reducer que sintetiza los veredictos y un único escritor al final. Nombralo, no lo arranques: igual que el propio `brainstorming` nombra a `specify` sin invocarlo, encadenarlo acá se saltearía la compuerta de aprobación del design que acaba de pasar. Que `planning-tasks` ahora sepa disparar el workflow por su cuenta no cambia eso — hace más fácil encadenar de más, no más aceptable.
 
-## Fase 3 — Tasks
+## El formato de `tasks.md` (referencia, no una fase de este skill)
 
-Esta fase se ejecuta invocando el skill `planning-tasks` (que orquesta al subagente `planner`), no escribiendo `tasks.md` a mano turno por turno. Lo que sigue queda igual: es la referencia de formato y reglas que `planner` tiene precargada como skill, y también el fallback si por algún motivo `planning-tasks`/`planner` no están disponibles en el proyecto.
+**Esta fase no la ejecuta este skill.** `tasks.md` lo escribe el workflow dinámico `tasks-fanout`, y nada más — lo dispara el skill `planning-tasks`, que antes verifica el spec y confirma el costo. No escribas `tasks.md` a mano turno por turno ni lo delegues a un subagente con permiso de escritura: el workflow existe para que haya un único escritor del archivo, y planificar por afuera reintroduce el segundo escritor que esa arquitectura elimina. Si el workflow no está disponible, el paso correcto es destrabarlo, no improvisar el plan.
+
+Lo que sigue son las **reglas de formato** que produce el workflow, no un procedimiento para vos. Están acá porque sus agentes tienen este skill precargado y las leen desde `assets/tasks-template.md`; también le sirven a una persona para revisar el `tasks.md` que salga.
 
 Con el design aprobado ya sabés qué se construye y cómo; falta en qué orden, y dejar preparado el lugar donde va a quedar registrado lo que realmente pase al construirlo.
 
-1. **Escribí `tasks.md`** en la misma carpeta, siguiendo `assets/tasks-template.md`.
+1. **El archivo es `tasks.md`** en la misma carpeta, siguiendo `assets/tasks-template.md`.
 2. **Una tarea, un ciclo de TDD**: test que falla → implementar → test que pasa, del tamaño que se pueda terminar de una sentada. Si una tarea necesita tres tests distintos para tener sentido, probablemente sean tres tareas.
 3. **Ordenalas para poder parar en cualquier punto**: cada tarea debería dejar el repo funcionando y en verde. Un plan que solo sirve si se completa entero no sirve como plan.
 4. **Cerrá la cadena de trazabilidad**: cada tarea dice qué criterios cubre. Después mirá el cruce en las dos direcciones — una tarea que no cubre ningún criterio es alcance que nadie pidió, y un criterio sin ninguna tarea es o un olvido o algo que hay que declarar fuera de alcance explícitamente. Ese cruce es la razón de numerar los criterios desde la fase 1.
-5. **Presentá y esperá aprobación**, igual que en las fases anteriores.
+5. **Se presenta y espera aprobación**, igual que en las fases anteriores. El workflow lo deja en `pendiente de aprobación` y no lo aprueba solo.
 
-Al planificar, cada tarea tiene solo objetivo, criterios que cubre y primer test. **La bitácora se completa durante la implementación, no ahora** — y no la escribas vos como parte de este skill: acá dejás la estructura preparada, no el relato de un trabajo que todavía no ocurrió.
+Al planificar, cada tarea tiene solo objetivo, criterios que cubre y primer test — más dos
+campos opcionales que solo aparecen cuando aplican: `Por qué no cubre criterios:` (cuando `Cubre`
+es `—`) y `Nota:` (ej. `reemplaza a T4`). Son los únicos dos que no se pueden reconstruir
+releyendo el archivo, así que si el workflow los produce y no quedan escritos, se pierden. **La bitácora se completa durante la implementación, no ahora** — y no la escribas vos como parte de este skill: acá dejás la estructura preparada, no el relato de un trabajo que todavía no ocurrió.
 
 ## Para qué sirve la bitácora
 

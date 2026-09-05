@@ -12,10 +12,14 @@ punto sin quedar a mitad de camino.>
 | # | Tarea | Cubre | Estado |
 |---|-------|-------|--------|
 | T1 | <qué se logra, en una línea> | R1.1, R1.2 | pendiente |
-| T2 | <...> | R2.1 | pendiente |
+| T2 | <...> | — | pendiente |
 
 <Estados: `pendiente` · `en curso` · `hecho`. Esta tabla es el único lugar donde vive el
 estado — no lo repitas abajo, o van a terminar contradiciéndose.>
+
+<Columna `Cubre`: los ids de criterio separados por coma. Si la tarea no cubre ninguno, va `—` y
+el motivo se explica abajo, en su sección de bitácora. La tabla queda angosta y legible; la
+justificación viaja pegada a la tarea.>
 
 **Criterios sin tarea asignada:** <ninguno | R3.2 — y por qué (ej. se cubre en otra feature)>
 
@@ -43,8 +47,17 @@ El resto se completa mientras se trabaja: es el registro de lo que realmente pas
 
 ### T2 — <título>
 
+<Esta segunda tarea muestra los dos campos opcionales. Ponelos SOLO cuando apliquen: una tarea
+normal tiene Objetivo, Cubre y Primer test, y nada más.>
+
 **Objetivo:** <...>
-**Cubre:** <...>
+**Cubre:** —
+**Por qué no cubre criterios:** <va solo si `Cubre` es `—`. Infraestructura inicial o integración
+final: por qué la tarea existe igual. Sin esta línea la tarea se lee como alcance que nadie pidió,
+y el chequeo automático de trazabilidad la marca como huérfana.>
+**Nota:** <va solo si aplica. Ej. `reemplaza a T4`. Un id nunca se reutiliza ni se renumera —
+puede estar citado en un commit o en la bitácora—, así que esta línea es lo único que conecta una
+tarea con la que vino a reemplazar, absorber o dividir.>
 **Primer test (rojo):** <...>
 
 **Registro** —
@@ -70,6 +83,10 @@ Recordatorios al escribir:
 - Al revés también: si un criterio no aparece en ninguna fila, o falta una tarea o hay que
   decir explícitamente por qué queda afuera.
 - Nada de código en este archivo. Describe qué hay que lograr, no cómo se escribe.
+- `Por qué no cubre criterios:` y `Nota:` son los dos campos que se pierden si no se escriben
+  acá. Todo lo demás se puede reconstruir leyendo el archivo; estos dos no, y su ausencia no se
+  nota: una tarea sin el primero se relee como huérfana, y una sin el segundo pierde para siempre
+  a qué tarea reemplazó.
 - La bitácora se completa mientras se trabaja, no al final de todo. Escrita después, se
   convierte en un resumen prolijo que perdió justo lo que valía la pena: las dudas y las
   alternativas que se descartaron en el momento.
