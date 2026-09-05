@@ -53,7 +53,11 @@ Después:
 4. **Dejá registro de lo descartado**: qué alternativas consideraste y por qué no. Eso evita rediscutir lo mismo en tres semanas.
 5. **Presentá y esperá aprobación**, igual que en la fase 1.
 
+Una vez aprobado el design, decí que el paso siguiente es el skill **`planning-tasks`**, que arma y itera `tasks.md` orquestando el subagente `planner` (tarea por tarea, hasta que el plan queda con cobertura completa y bien dimensionado). Nombralo, no lo arranques: igual que el propio `brainstorming` nombra a `specify` sin invocarlo, encadenarlo acá se saltearía la compuerta de aprobación del design que acaba de pasar.
+
 ## Fase 3 — Tasks
+
+Esta fase se ejecuta invocando el skill `planning-tasks` (que orquesta al subagente `planner`), no escribiendo `tasks.md` a mano turno por turno. Lo que sigue queda igual: es la referencia de formato y reglas que `planner` tiene precargada como skill, y también el fallback si por algún motivo `planning-tasks`/`planner` no están disponibles en el proyecto.
 
 Con el design aprobado ya sabés qué se construye y cómo; falta en qué orden, y dejar preparado el lugar donde va a quedar registrado lo que realmente pase al construirlo.
 
