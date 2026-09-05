@@ -35,6 +35,11 @@ implementación, no al planificar.
    tarea, veredicto `status` con `newStatus: "hecho"`; si está a medias, `"en curso"`.
    **No corras `npm test` ni `npm run typecheck`**: el workflow ya los corrió una vez y te pasa
    el resultado. Correrlos otra vez en paralelo es desperdicio y puede pisarse entre agentes.
+   Por eso tu `status` es una **señal de planificación** leída del estado del repo, no una
+   verificación: decís que el código *parece* cubrir la tarea. Comprobar de verdad que una tarea
+   implementada cumple sus criterios —corriendo los tests y leyendo el código contra cada uno— es
+   trabajo del subagente `dod-checker`, en otra fase. No lo hagas vos ni te quedes corto por eso:
+   emití tu señal y seguí.
 
 ## Límites
 
