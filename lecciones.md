@@ -103,8 +103,9 @@ de error y se queda con la entrada que termine en `:tasks-fanout`, sin hardcodea
 nombre del plugin cambia según cómo esté instalado y renombrarlo no puede romper el skill. Commit
 `c9092d7` / `6d6a557`.
 
-**Lo que falta.** Verificar el arreglo en vivo. Que el workflow esté registrado ya está confirmado;
-que el skill lo resuelva bien, no.
+**Verificado en vivo el 2026-09-06.** La sesión lanzó `tasks-fanout`, recibió
+`Workflow "tasks-fanout" not found. Available: deep-research, harness-spike:tasks-fanout`, y
+relanzó sola con el nombre correcto. El arreglo funciona tal como se diseñó.
 
 **Salvedad.** Esto se leyó del binario de Claude Code, no de documentación pública. Es comportamiento
 interno y puede cambiar entre versiones.
@@ -365,6 +366,42 @@ sección `## After Approval` puede quedar, pero el nombrado no puede vivir **sol
 
 **Lo que NO hay que hacer.** Arrancar el skill siguiente. La compuerta existe justamente ahí, y
 nombrar no es empezar.
+
+---
+
+## L19 · Los `agentType` del workflow sufren el mismo namespacing que el workflow · `abierto`
+
+**Qué pasó.** Corriendo `tasks-fanout` desde el plugin (2026-09-06), el workflow falló en su primer
+paso: el script referencia `agentType: 'spec-scout'` y dentro de un plugin el agente se registra
+como `harness-spike:spec-scout`. Son **cinco** referencias en el script (`spec-scout`,
+`plan-reducer` ×2, `task-reviewer`, `task-writer`) y todas fallan igual.
+
+**Por qué se nos pasó.** Al arreglar [[L4]] se corrigió el nombre con que se **invoca** el workflow,
+en la prosa de `planning-tasks`. No se pensó que las referencias **internas** del script tuvieran el
+mismo problema. El namespacing de plugin aplica a los dos tipos de componente, no solo a uno.
+
+**Por qué el arreglo de la sesión no sirve.** La sesión lo resolvió con `sed` sobre
+`~/.claude/projects/.../workflows/scripts/tasks-fanout-wf_<run>.js`, que es la copia persistida **de
+esa invocación**. La fuente del plugin quedó intacta: esa corrida anduvo, la siguiente regenera el
+script y vuelve a fallar. Es el tipo de arreglo que se ve exitoso y no cambia nada.
+
+**Por qué hardcodear el prefijo tampoco.** `agentType: 'harness-spike:spec-scout'` se rompe el día
+que el plugin se renombre a `mi-harness` — exactamente la trampa que [[L4]] esquivó.
+
+**Qué habría que hacer.** El mismo patrón que [[L4]], pero adentro del script: un helper que intente
+el nombre pelado, y ante el error —que tiene la forma `" not found. Available agents: ..."`, igual
+que el del workflow— parsee la lista, encuentre la entrada que termine en `:<nombre>`, derive el
+prefijo y lo cachee para las llamadas siguientes. Descubrir en vez de asumir. Cuando el harness vive
+en el repo el nombre pelado resuelve y nunca se entra al `catch`, así que el mismo script sirve para
+las dos formas de distribución.
+
+**El orden ayuda:** el scout corre primero y solo, así que el prefijo queda resuelto antes del
+`parallel()` de los revisores — no hay N fallos concurrentes.
+
+**Regla general que deja.** Cualquier referencia por nombre entre componentes del harness es
+sospechosa al empaquetar: el workflow por su nombre ([[L4]]), los agentes por su `agentType` (esta),
+y los skills precargados por `skills: [specify]` ([[L2]], todavía sin verificar). Las tres son la
+misma clase de fallo.
 
 ---
 
