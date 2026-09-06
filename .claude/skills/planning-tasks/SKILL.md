@@ -57,5 +57,6 @@ Workflow(scriptPath: "<ruta absoluta del repo>/.claude/workflows/tasks-fanout.js
          args: "docs/AAAA-MM-DD-<feature>")
 ```
 
-Lo que nunca hagas, pase lo que pase, es escribir `tasks.md` por afuera: el workflow existe para
-que ese archivo tenga un solo escritor.
+Lo que nunca hagas, pase lo que pase, es armar el plan por afuera: el workflow existe para que la
+tabla de tareas tenga un único escritor. (El `Estado` y el `Registro` de cada tarea son otra
+región, y los escribe quien implementa — eso no es planificar.)

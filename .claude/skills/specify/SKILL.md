@@ -57,7 +57,7 @@ Una vez aprobado el design, decí que el paso siguiente es el skill **`planning-
 
 ## El formato de `tasks.md` (referencia, no una fase de este skill)
 
-**Esta fase no la ejecuta este skill.** `tasks.md` lo escribe el workflow dinámico `tasks-fanout`, y nada más — lo dispara el skill `planning-tasks`, que antes verifica el spec y confirma el costo. No escribas `tasks.md` a mano turno por turno ni lo delegues a un subagente con permiso de escritura: el workflow existe para que haya un único escritor del archivo, y planificar por afuera reintroduce el segundo escritor que esa arquitectura elimina. Si el workflow no está disponible, el paso correcto es destrabarlo, no improvisar el plan.
+**Esta fase no la ejecuta este skill.** El **plan** de `tasks.md` —qué tareas hay, sus ids, su orden, su `Cubre`— lo escribe el workflow dinámico `tasks-fanout`, y nada más; lo dispara el skill `planning-tasks`, que antes verifica el spec y confirma el costo. (El `Estado` y el `Registro` de cada tarea son la otra región del archivo, y los escribe quien implementa; ver `CLAUDE.md`.) No escribas el plan a mano turno por turno ni lo delegues a un subagente con permiso de escritura: el workflow existe para que el plan tenga un único escritor, y planificar por afuera reintroduce el segundo planificador que esa arquitectura elimina. Si el workflow no está disponible, el paso correcto es destrabarlo, no improvisar el plan.
 
 Lo que sigue son las **reglas de formato** que produce el workflow, no un procedimiento para vos. Están acá porque sus agentes tienen este skill precargado y las leen desde `assets/tasks-template.md`; también le sirven a una persona para revisar el `tasks.md` que salga.
 
@@ -77,6 +77,13 @@ releyendo el archivo, así que si el workflow los produce y no quedan escritos, 
 ## Para qué sirve la bitácora
 
 Es la parte del spec que más se subestima. El código terminado muestra el resultado y nunca la alternativa descartada; a los seis meses nadie se acuerda de por qué algo quedó así, y se termina rediscutiendo lo mismo o —peor— revirtiendo una decisión que tenía una buena razón.
+
+**La escribe quien implementa, no el workflow.** `tasks-fanout` es dueño del plan —qué tareas hay,
+sus ids, su orden, su `Cubre`— y quien implementa es dueño de dos regiones de la tarea que está
+haciendo: su celda de `Estado` y su bloque de `Registro`. Son partes distintas del archivo, con
+dueños distintos, y no se escriben a la vez. En ese Registro va también la línea de
+**Verificación** con el veredicto de `dod-checker`: sin un `cumple` asentado ahí, la tarea no pasa
+a `hecho`.
 
 De lo que se anota, hay una categoría que no puede quedar en silencio: **el desvío respecto del design**. Si la implementación terminó haciendo algo distinto de lo diseñado, se registra en la tarea y se actualiza `design.md`. Un desvío sin registrar rompe la trazabilidad sin que se note, porque el documento sigue leyéndose como si describiera lo que existe.
 

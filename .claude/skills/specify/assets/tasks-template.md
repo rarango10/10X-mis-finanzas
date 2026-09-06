@@ -17,6 +17,11 @@ punto sin quedar a mitad de camino.>
 <Estados: `pendiente` · `en curso` · `hecho`. Esta tabla es el único lugar donde vive el
 estado — no lo repitas abajo, o van a terminar contradiciéndose.>
 
+<`hecho` significa **verificado**, no «ya lo programé». Lo escribe quien implementa, y solo con un
+`cumple` de `dod-checker` asentado en el Registro de esa tarea; con cualquier otro veredicto la
+tarea queda en `en curso`. Esta columna es el único registro durable de qué está terminado, así
+que un `hecho` de más es peor que una tarea olvidada: se lee como trabajo cerrado.>
+
 <Columna `Cubre`: los ids de criterio separados por coma. Si la tarea no cubre ninguno, va `—` y
 el motivo se explica abajo, en su sección de bitácora. La tabla queda angosta y legible; la
 justificación viaja pegada a la tarea.>
@@ -36,6 +41,9 @@ El resto se completa mientras se trabaja: es el registro de lo que realmente pas
 
 **Registro** — <completar al terminar; fecha>
 
+- **Verificación:** <`dod-checker` → cumple · R1.1, R1.2 · npm test 14/14 · 2026-09-05. Sin esta
+  línea, y sin un `cumple`, la tarea no puede pasar a `hecho` en la tabla de arriba. Si el
+  veredicto fue menor, anotá cuál y qué faltó: eso es lo que va a mirar el que retome.>
 - <Decisiones que hubo que tomar y que el design no fijaba. Esto es lo más valioso del
   archivo: dentro de un mes nadie se acuerda por qué se eligió así, y el código solo
   muestra el resultado, nunca la alternativa descartada.>

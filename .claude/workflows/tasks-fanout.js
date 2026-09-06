@@ -25,8 +25,10 @@ export const meta = {
 // son una condicion de carrera y gana el ultimo que guarda. Aca los revisores devuelven
 // veredictos tipados y nunca tocan el disco.
 //
-// Este es el UNICO camino por el que se escribe tasks.md en este proyecto (ver CLAUDE.md
-// y el skill planning-tasks, que es el que lo dispara).
+// Este es el UNICO camino por el que se escribe el PLAN de tasks.md en este proyecto (ver
+// CLAUDE.md y el skill planning-tasks, que es el que lo dispara). La otra region del archivo
+// -- el Estado y el Registro de cada tarea -- la escribe quien implementa, y el task-writer
+// la preserva en vez de pisarla.
 //
 // REGLA INVARIANTE: de las cinco llamadas a agent() de este script, CUATRO usan un
 // agentType de solo lectura (spec-scout, plan-reducer, task-reviewer) y solo la ultima

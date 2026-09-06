@@ -36,10 +36,20 @@ le sigue — solo lo nombra.
 - Una feature a la vez. No abrir frentes en paralelo.
 - TDD: test que falla → implementar → test que pasa.
 - No agregar dependencias sin necesidad.
-- `tasks.md` lo escribe **solo** el workflow `tasks-fanout`, nunca a mano ni con otro subagente. El
-  workflow revisa las tareas en paralelo con agentes de solo lectura y las materializa con un
-  único escritor; planificar por afuera reintroduce el segundo escritor que eso elimina.
-- El **DoD** (definition of done) de una tarea son los criterios que dice cubrir más su objetivo.
-  Lo evalúa el subagente `dod-checker`, que corre los tests y reporta — nunca cambia el estado en
-  `tasks.md`, porque ese archivo tiene un único escritor. Que una tarea pase a `hecho` lo decide
-  una persona.
+- **El plan lo escribe solo el workflow `tasks-fanout`**, nunca a mano ni con otro subagente:
+  qué tareas existen, sus ids, su orden, su título, su `Cubre` y los encabezados de la bitácora.
+  El workflow revisa en paralelo con agentes de solo lectura y materializa con un único escritor;
+  planificar por afuera reintroduce el segundo escritor que eso elimina.
+- **El avance lo escribe quien implementa**, y solo en dos lugares de la tarea que está haciendo:
+  su celda de `Estado` y su bloque de `Registro`. No es una excepción a la regla anterior: son
+  regiones distintas del archivo, con dueños distintos, y nunca se escriben a la vez. La condición
+  de carrera que la arquitectura evita es la de varios planificadores pisándose en paralelo, no la
+  de un plan y su bitácora. Lo único prohibido es implementar mientras hay una corrida de
+  `tasks-fanout` en vuelo: entre que el scout lee y el escritor guarda, tu `hecho` se pierde.
+- **`hecho` significa verificado.** Una tarea pasa a `hecho` solo cuando `dod-checker` devolvió
+  `cumple` y su `Registro` deja asentado ese veredicto. Cualquier resultado menor —
+  `cumple-parcial`, `no-cumple`, `no-verificable`— la deja en `en curso`. Ese es el **DoD**
+  (definition of done) de este proyecto: los criterios que la tarea dice cubrir, más su objetivo.
+  `dod-checker` reporta y no escribe; el veredicto lo asienta quien implementa, al registrar.
+  Por eso la columna `Estado` es el registro durable de qué está hecho de verdad: es lo que hay
+  que leer para saberlo, y no hay que buscarlo en ningún otro lado.
