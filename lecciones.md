@@ -565,6 +565,43 @@ instrucciones, pero no arregla el hueco — que salga bien una vez no es una gar
 
 ---
 
+## L23 · `dod-checker` no tiene regla de corte cuando la verificación falla · `abierto`
+
+**Qué pasó.** Verificando T1 en el demo (2026-09-06), `npm run check` falló porque el pool de
+vitest se colgaba (timeout de 60 s). El agente encadenó **diez comandos** intentando destrabarlo:
+`npm run check` dos veces, `vitest --pool=threads`, una sonda de `worker_threads` en Node crudo,
+`vitest --poolOptions...` (que ni parseó), sondas de esbuild y de rolldown, `npm run build`,
+`typecheck` + `lint` —que se fue a background por timeout de 120 s— y un `ps aux`. Varios de 60 s.
+
+**Su instrucción dice «Corré la verificación, una vez».**
+
+**El matiz que importa.** No está mal diagnosticar: ese diagnóstico es justamente lo que hace útil
+un `blockedReason`. «vitest se cuelga» sirve mucho menos que «vitest 5 + vite 8 (rolldown) cuelga el
+pool runner; `worker_threads` crudo levanta bien; `build` y `typecheck` pasan». El problema no es
+que investigue, es que **no tiene ni tope ni condición de corte**. La regla del `no-verificable` le
+dice qué veredicto dar cuando no puede correr, pero nada le dice cuándo dejar de intentar. Su
+instinto es arreglar el entorno, y eso lo aleja de su producto, que es un veredicto.
+
+**Es el mismo defecto de forma que [[L16]]**: una instrucción que fija el *ritmo* («una vez») sin
+fijar la *condición de salida*. En `brainstorming` era cuándo dejar de preguntar; acá es cuándo
+dejar de diagnosticar.
+
+**Qué habría que hacer.** Darle un presupuesto explícito y un formato para lo que averigüe:
+
+- **Un reintento como máximo**, y solo si la primera falla parece transitoria.
+- **Después, hasta tres comandos de diagnóstico** cuyo único fin es llenar `blockedReason` — no
+  arreglar nada. Nombrar que lo que se busca es *qué falló y en qué capa*, no una solución.
+- **Prohibido intentar workarounds** del comando declarado: correr `vitest --pool=threads` cuando
+  `CLAUDE.md` dice `npm run check` ya es verificar otra cosa. Si el comando del contrato no corre,
+  eso **es** el hallazgo.
+- Que el diagnóstico obtenido vaya al `blockedReason`, que hoy es un campo de una línea y debería
+  admitir el detalle.
+
+**Costo observado.** Varios minutos de reloj y un volumen de tokens muy superior al de una
+verificación normal, para producir un veredicto que la primera falla ya determinaba.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
