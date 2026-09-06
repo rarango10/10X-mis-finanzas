@@ -640,17 +640,33 @@ que contrastarlo.
 
 ---
 
-## L25 · El entorno puede bloquear binarios nativos, y eso paraliza la verificación · `abierto`
+## L25 · Un toolchain que no arranca paraliza el ciclo entero · `abierto`
 
 **Qué pasó.** En `my-harness-demo` (2026-09-06), `npm test` (vitest) y `npm run lint` (biome) se
 cuelgan sin producir resultado, de forma reproducible, con y sin el sandbox del harness. El `ps aux`
 muestra dos procesos `@biomejs/cli-darwin-arm64/biome` en estado **`UE`** —uninterruptible— que **no
 responden ni a `kill -9`**. Eso es un bloqueo a nivel de kernel, no de Node.
 
-**El patrón.** Falla todo lo que lanza un binario nativo o un worker con IPC recién instalado por
-npm; funciona todo lo que corre in-process (`node -e`, `tsc`, `vite build` con rolldown como addon
-nativo ya cargado). Candidato principal: la verificación de Gatekeeper/notarización en la primera
-ejecución de binarios nativos nuevos en macOS.
+**La causa, acotada con evidencia.** La primera hipótesis —que el entorno bloqueaba binarios
+nativos— resultó **falsa**, y vale dejarla anotada como error de diagnóstico. La cadena que la
+descartó:
+
+| Prueba | Resultado |
+|---|---|
+| vitest 5 desde el subagente | cuelga |
+| vitest 5 desde la sesión principal | cuelga |
+| vitest 5 con el sandbox desactivado | cuelga |
+| vitest 5 con `--pool=threads` | cuelga |
+| vitest 5 desde la terminal del usuario, sin Claude | cuelga |
+| **vitest 2.1.9 en otro repo, en la misma máquina, el mismo minuto** | **68 tests en verde** |
+
+Forkear procesos con IPC **funciona** en esa máquina. Lo que no arranca es el worker de
+`vitest 5.0.0` con `vite 8.2.2` — una combinación muy nueva, con rolldown reemplazando a esbuild.
+Es un problema de versiones del proyecto, no del entorno ni del harness.
+
+**Lo de biome queda aparte y sin explicar:** dos procesos de su binario nativo colgados en estado
+`UE`, que no responden ni a `kill -9`. No bloquea el harness —`npm run check` no incluye lint— pero
+tampoco se aclaró.
 
 **Por qué es un problema del harness y no solo de la máquina.** `npm run check` es la compuerta de
 **todas** las tareas. Si el entorno donde corre `dod-checker` no puede ejecutar el runner de tests,
@@ -658,10 +674,22 @@ ninguna tarea puede pasar a `hecho` y el ciclo se detiene por completo — con v
 (`no-verificable`) pero inútiles. El harness supone, sin decirlo en ninguna parte, que el entorno de
 verificación puede hacer todo lo que hace el de implementación.
 
-**Qué habría que hacer.** Que `CLAUDE.md` —o el futuro `/harness-init` de [[L1]]— declare
-explícitamente en qué entorno se verifica, y que un fallo de arranque de proceso repetido escale a
-una decisión humana en vez de reintentarse (ver [[L23]]). El propio veredicto de T1 lo pidió en sus
-`specGaps`, que es exactamente para lo que existe ese campo.
+**Qué habría que hacer.** Dos cosas distintas:
+
+- **En el harness:** que un fallo de arranque del runner escale a una decisión humana en vez de
+  reintentarse ([[L23]]), y que el `blockedReason` incluya la comparación que acá fue decisiva —
+  ¿el mismo tipo de comando funciona en otro proyecto de la misma máquina? Esa sola pregunta separa
+  «entorno roto» de «toolchain roto», y es barata.
+- **En la guía de `CLAUDE.md`:** que el paso 0 desaconseje fijar versiones `^latest` de la cadena de
+  build para un proyecto que va a ser verificado por agentes. Una combinación recién salida deja al
+  verificador sin señal, y el ciclo se detiene con veredictos correctos (`no-verificable`) pero
+  inútiles.
+
+**Lo que sí quedó demostrado.** El harness supone, sin decirlo en ninguna parte, que el entorno de
+verificación puede ejecutar el runner de tests del proyecto. Cuando no puede, ninguna tarea llega a
+`hecho` y el ciclo se para por completo. Eso vale sin importar la causa, y es lo que hay que
+documentar. El veredicto de T1 lo pidió por su cuenta en `specGaps`, que es exactamente para lo que
+existe ese campo.
 
 ---
 
