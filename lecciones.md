@@ -499,6 +499,34 @@ varía por corrida va en el `label`; lo que estructura el workflow va en el `tit
 
 ---
 
+## L21 · El encabezado `Estado` de `tasks.md` no tiene dueño después de la aprobación · `abierto`
+
+**Qué pasó.** En el demo de la calculadora (2026-09-06) la persona aprobó el plan y la sesión lo
+reportó como aprobado, pero el archivo siguió diciendo `> Estado: pendiente de aprobación`.
+`requirements.md` y `design.md` sí quedaron en `aprobado` — los había actualizado `planning-tasks`
+al verificar los insumos, notando que estaban desfasados.
+
+**Por qué no es descuido de nadie.** `task-writer` tiene prohibición explícita de tocarlo: «Nunca
+marques el documento como aprobado — eso lo decide una persona». Y ningún skill lo retoma después.
+La aprobación ocurre en el chat y no aterriza en el archivo.
+
+**Por qué importa.** El harness trata ese encabezado como registro durable: `spec-scout` lo lee en la
+corrida siguiente, y `planning-tasks` decide con él si el spec está listo. Un plan aprobado que
+figura como pendiente hace que la próxima pasada del workflow lo trate como no aprobado, y que
+cualquiera que abra el repo lea que se está implementando sobre un plan sin cerrar.
+
+**Es la misma forma que [[L1]]**, pero sobre una transición de estado en vez de un documento: el
+ciclo define quién **produce** cada archivo y no quién **marca su aprobación**. La regla «cada paso
+espera aprobación humana» describe qué tiene que pasar en la conversación, no dónde queda asentado.
+
+**Qué habría que hacer.** Que la aprobación tenga un dueño explícito, igual que el veredicto de
+`dod-checker` lo tiene. La opción más simple y consistente con el resto: quien recibe el «sí»
+actualiza el encabezado en el acto, y eso queda escrito en los tres skills con compuerta. Encaja con
+el arreglo de [[L18]] —nombrar el paso siguiente al pedir la aprobación— porque es el mismo momento
+del ciclo: al pedir el sí se dice qué habilita, y al recibirlo se asienta.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
