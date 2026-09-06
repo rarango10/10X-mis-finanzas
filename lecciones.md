@@ -559,9 +559,17 @@ implementa se le ocurra contarle.
 Conviene además que los skills que lo nombran (`verify-e2e` lo menciona, y el ciclo lo usa en el
 paso 6) digan cómo invocarlo: «pasale el id y la carpeta, no le cuentes cómo te fue».
 
-**Nota.** En esta corrida el sesgo no cambió el resultado observable: el agente igual corrió
-`npm run check` por su cuenta en vez de confiar en lo que le dijeron. Eso habla bien de sus
-instrucciones, pero no arregla el hueco — que salga bien una vez no es una garantía.
+**Confirmado con daño real, el mismo día.** El veredicto de T1 dice: «No vi ninguna dependencia
+fuera del stack de CLAUDE.md **salvo** `@types/react`/`@types/react-dom`, que la propia Bitácora de
+T1 ya declara». Es falso: `@testing-library/jest-dom` está en `devDependencies` y **no** está en la
+lista de `CLAUDE.md`, que nombra solo `@testing-library/react` y `@testing-library/user-event`.
+
+Lo revelador es *cómo* se le pasó. No comparó `package.json` contra `CLAUDE.md`: usó **la bitácora
+del implementador como checklist**, y encontró exactamente las dos dependencias que el implementador
+ya había confesado, ninguna más. El veredicto terminó ratificando el relato de quien implementó en
+vez de auditarlo — que es precisamente el daño que esta entrada predecía. El agente sí corrió los
+comandos por su cuenta; la contaminación no estuvo en los comandos, estuvo en **qué buscó y contra
+qué lo comparó**.
 
 ---
 
@@ -599,6 +607,61 @@ dejar de diagnosticar.
 
 **Costo observado.** Varios minutos de reloj y un volumen de tokens muy superior al de una
 verificación normal, para producir un veredicto que la primera falla ya determinaba.
+
+---
+
+## L24 · `dod-checker` no tiene un paso que compare las dependencias contra `CLAUDE.md` · `abierto`
+
+**Qué pasó.** Verificando T1 (2026-09-06) no detectó `@testing-library/jest-dom` en
+`devDependencies`, que no figura en la lista de stack de `CLAUDE.md`. Reportó como único desvío el
+que la bitácora del implementador ya declaraba.
+
+**Por qué.** El agente tiene la restricción escrita en `## Límites` —«Respetá `CLAUDE.md`: sin
+dependencias que `design.md` no haya justificado. Una implementación que sumó una librería por su
+cuenta es un desvío que hay que reportar»— pero es una **mención pasiva**, no un paso del
+procedimiento. `## Qué verificar` enumera cinco pasos: ubicar la tarea, correr la verificación,
+criterio por criterio, el objetivo, y los desvíos del design. **Ninguno dice «leé el manifiesto de
+dependencias y restalo de la lista declarada».** Lo que no es un paso, no se hace.
+
+**Por qué importa más de lo que parece.** Una dependencia que entra sin acordarse es de los desvíos
+más caros: cambia la superficie de ataque, el tiempo de build y la licencia del producto, y es
+invisible en el diff del código de la tarea. Y es justamente el tipo de chequeo mecánico donde un
+verificador debería ser mejor que una persona — restar dos listas no requiere juicio.
+
+**Qué habría que hacer.** Agregarlo como paso explícito en `## Qué verificar`, redactado como una
+resta y no como un vistazo: leer el manifiesto de dependencias del proyecto, leer la lista declarada
+en `CLAUDE.md`, y reportar en `designDeviations` **toda** entrada del primero que no esté en la
+segunda — esté o no declarada en la bitácora. Que el implementador ya la haya confesado no la saca
+del veredicto: cambia si es un desvío *registrado* o *silencioso*, y las dos cosas van al reporte.
+
+**Relación con [[L22]].** Son las dos mitades del mismo fallo: L22 explica por qué el agente se dejó
+guiar por el relato del implementador; esta explica por qué no tenía un procedimiento propio con el
+que contrastarlo.
+
+---
+
+## L25 · El entorno puede bloquear binarios nativos, y eso paraliza la verificación · `abierto`
+
+**Qué pasó.** En `my-harness-demo` (2026-09-06), `npm test` (vitest) y `npm run lint` (biome) se
+cuelgan sin producir resultado, de forma reproducible, con y sin el sandbox del harness. El `ps aux`
+muestra dos procesos `@biomejs/cli-darwin-arm64/biome` en estado **`UE`** —uninterruptible— que **no
+responden ni a `kill -9`**. Eso es un bloqueo a nivel de kernel, no de Node.
+
+**El patrón.** Falla todo lo que lanza un binario nativo o un worker con IPC recién instalado por
+npm; funciona todo lo que corre in-process (`node -e`, `tsc`, `vite build` con rolldown como addon
+nativo ya cargado). Candidato principal: la verificación de Gatekeeper/notarización en la primera
+ejecución de binarios nativos nuevos en macOS.
+
+**Por qué es un problema del harness y no solo de la máquina.** `npm run check` es la compuerta de
+**todas** las tareas. Si el entorno donde corre `dod-checker` no puede ejecutar el runner de tests,
+ninguna tarea puede pasar a `hecho` y el ciclo se detiene por completo — con veredictos correctos
+(`no-verificable`) pero inútiles. El harness supone, sin decirlo en ninguna parte, que el entorno de
+verificación puede hacer todo lo que hace el de implementación.
+
+**Qué habría que hacer.** Que `CLAUDE.md` —o el futuro `/harness-init` de [[L1]]— declare
+explícitamente en qué entorno se verifica, y que un fallo de arranque de proceso repetido escale a
+una decisión humana en vez de reintentarse (ver [[L23]]). El propio veredicto de T1 lo pidió en sus
+`specGaps`, que es exactamente para lo que existe ese campo.
 
 ---
 
