@@ -342,8 +342,14 @@ nombrado está condicionado a que la aprobación ya haya ocurrido. `specify` hac
 **Por qué igual está mal.** La compuerta le pide a la persona que apruebe sin decirle hacia dónde
 está aprobando. Hay que saberse el ciclo de memoria para saber qué desbloquea el sí. La cadena
 queda descubrible solo en retrospectiva: te enterás del paso siguiente después de haberlo
-autorizado. En un repo donde la persona ya conoce el harness no se nota; en uno nuevo la cadena se
-corta ahí, porque el harness espera una frase que el usuario no sabe que tiene que decir.
+autorizado.
+
+**La evidencia es más fuerte de lo que parecía.** Al registrar esto se supuso que solo afectaría a
+quien no conociera el ciclo. Falso: quien se confundió fue **la persona que construyó el harness**.
+Leyó el cierre sin mención de `specify`, concluyó que el ciclo se había salteado un paso, y frenó
+para reportarlo. Después aprobó, y el skill nombró `specify` correctamente — o sea que la mecánica
+funciona y el problema es de legibilidad en el único momento que importa: el de decidir. Si el
+defecto engaña al autor, no hay lector a salvo.
 
 **Y agrava a [[L16]] y [[L17]].** Te piden aprobar un diseño con cuatro decisiones que nunca se
 preguntaron, sin avisarte que aprobarlo las convierte en criterios de aceptación numerados en
