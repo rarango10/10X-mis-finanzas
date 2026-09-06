@@ -260,7 +260,7 @@ archivos, módulos o componentes concretos. Eso es del design.
 
 ---
 
-## L15 · Decidió el stack sin preguntar, habiéndoselo pedido · `en observación`
+## L15 · Decidió el stack sin preguntar, habiéndoselo pedido · `abierto` (escalada)
 
 **Qué pasó.** El prompt del paso 1 decía «proponeme el stack y preguntame lo que necesites decidir».
 Escribió React + Testing Library + Biome directamente, sin consultar — y el propio archivo admite
@@ -272,8 +272,59 @@ harness entero se apoya en que cada paso se detenga y espere. Si la consulta se 
 donde está escrita en el prompt del humano, vale preguntarse cuánto aguantan las que están escritas
 en la prosa de un skill.
 
-**Qué habría que hacer.** Observarlo en los pasos siguientes antes de tocar nada. Si vuelve a pasar
-en un paso con compuerta declarada, deja de ser anécdota y pasa a [[L8]].
+**Qué habría que hacer.** Ya volvió a pasar, en el paso siguiente: ver [[L16]] y [[L17]]. Deja de
+ser anécdota. El patrón es consistente —el modelo prefiere avanzar con un supuesto antes que
+detenerse a preguntar— y las tres entradas apuntan al mismo arreglo: condiciones de corte
+verificables y etiquetado del origen de cada decisión, en vez de más prosa pidiendo que consulte.
+
+---
+
+## L16 · `brainstorming` fija el ritmo de las preguntas pero no la condición de corte · `abierto`
+
+**Qué pasó.** En el demo de la calculadora (2026-09-06), el skill hizo **una** pregunta y pasó a
+proponer el diseño, decidiendo por su cuenta otras cuatro cosas de comportamiento: decimales y
+negativos, cuándo se recalcula el resultado, si «Limpiar» borra también el resultado, y si la
+casilla de resultado es editable. Las presentó como «casos borde ya cubiertos por la decisión de
+arriba», y no lo estaban.
+
+**Por qué importa.** El paso 2 del skill dice «Ask clarifying questions, one at a time... One
+question per message». Eso especifica el **ritmo**, no el **corte**. Una pregunta por mensaje es
+literalmente lo que pide, y el modelo lo cumplió. Lo único que decide cuándo dejar de preguntar es
+el paso 3 —«once the shape of the idea is clear»— que es vago y lo juzga el propio modelo. El skill
+no tiene forma de detectar que quedaron decisiones abiertas: es un defecto del texto, no solo
+conducta del modelo.
+
+**Qué habría que hacer.** Agregarle una condición de corte verificable: antes de proponer, enumerar
+las decisiones de comportamiento que el pedido deja abiertas, y proponer recién cuando esa lista
+esté vacía o cuando lo que quede esté declarado explícitamente como supuesto. Un supuesto declarado
+es honesto; uno silencioso es el que después aparece como criterio de aceptación que nadie acordó.
+
+**De paso, el paso 3 tampoco se cumplió.** Pide «offer 1-3 approaches with trade-offs»; entregó uno
+solo, sin alternativas ni contrapartidas.
+
+---
+
+## L17 · Un modelo puede devolverte una decisión propia como si fuera tuya · `abierto`
+
+**Qué pasó.** En el mismo diseño: «El resultado no se recalcula solo mientras el usuario tipea —
+solo al apretar Calcular, **tal como lo pediste**». La persona nunca pidió eso; había mencionado un
+botón de ejecutar operación, nada sobre el momento del recálculo.
+
+**Por qué importa.** Es la misma clase de fallo que marcar una tarea `hecho` sin veredicto de
+`dod-checker`: inventar un respaldo que no existe. Y es el más difícil de detectar de todos, porque
+quien lee «tal como lo pediste» asume que se acuerda mal, no que le están fabricando el
+consentimiento. Una decisión así entra al `requirements.md` como criterio acordado, y de ahí en más
+nadie la vuelve a cuestionar: queda blanqueada por el propio proceso que existía para evitarlo.
+
+**Qué habría que hacer.** Una regla explícita en `brainstorming` —y probablemente en `specify`— que
+prohíba atribuirle al humano una decisión que no tomó. Toda decisión va etiquetada con su origen:
+«lo pediste», «lo decidí yo, decime si va», «lo asumí porque X». La distinción entre las tres es lo
+que hace que la aprobación signifique algo. Es barata de escribir y ataca un fallo que ninguna
+compuerta detecta, porque la compuerta pregunta «¿aprobás?» y no «¿esto que digo que pediste, lo
+pediste?».
+
+**Relación con [[L15]].** L15 queda escalada: ya no es anécdota. Dos pasos seguidos —el `CLAUDE.md`
+y el brainstorming— decidieron sin preguntar, y el segundo además lo atribuyó a la persona.
 
 ---
 
