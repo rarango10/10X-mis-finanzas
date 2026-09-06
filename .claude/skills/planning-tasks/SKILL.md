@@ -38,24 +38,51 @@ Workflow(tasks-fanout, args: "docs/AAAA-MM-DD-<feature>")
 `args` también acepta un objeto, para acotar las rondas o forzar un spec sin aprobar:
 `{"specDir": "docs/AAAA-MM-DD-<feature>", "maxRounds": 2}`.
 
+**El nombre puede venir con prefijo.** Si el harness está empaquetado como plugin, el workflow se
+registra como `<nombre-del-plugin>:tasks-fanout` y el nombre pelado no resuelve. Lanzá el pelado
+igual: si no existe, el error lista los nombres disponibles y de ahí sacás el correcto — está
+explicado abajo. No inventes el prefijo antes de tener esa lista.
+
 ### Si algo falla al lanzar
 
-Son dos fallas distintas y se arreglan distinto.
+Son dos fallas distintas y se arreglan distinto — y la segunda tiene, a su vez, dos causas.
 
 **El tool `Workflow` no existe.** Los workflows dinámicos son opt-in en el plan Pro: si
 `enableWorkflows` no está en `~/.claude/settings.json`, el tool ni se ofrece. Pedile que lo
 active (`/config` → Dynamic workflows, o la clave a mano) y que abra una **sesión nueva** — el
 toolset se arma al arrancar.
 
-**El tool existe pero dice `Workflow "tasks-fanout" not found`.** El registro de nombres se arma
-al arrancar la sesión, así que un workflow creado o editado a mitad de sesión se cae de ahí.
-No ofrezcas `/tasks-fanout`: ese comando sale del mismo registro y tampoco va a existir. Lanzalo
-por ruta, que no depende del registro:
+**El tool existe pero dice `Workflow "tasks-fanout" not found`.** Ese error trae consigo la
+solución: termina con `Available: <lista de nombres>`. **Leé esa lista antes de hacer nada más**,
+porque distingue las dos causas posibles.
+
+*El workflow está, con otro nombre.* Si en `Available` aparece una entrada que **termina en
+`:tasks-fanout`** —por ejemplo `mi-harness:tasks-fanout`—, el workflow se cargó desde un plugin.
+Los plugins registran sus workflows namespaceados con el nombre del plugin, así que el nombre
+pelado no resuelve. Relanzá con el nombre completo tal como figura en la lista:
 
 ```
-Workflow(scriptPath: "<ruta absoluta del repo>/.claude/workflows/tasks-fanout.js",
+Workflow(<lo-que-figura-en-Available>, args: "docs/AAAA-MM-DD-<feature>")
+```
+
+No hardcodees el prefijo ni lo adivines: tomalo de la lista. El nombre del plugin cambia según
+cómo esté instalado, y una copia local del workflow convive con la del plugin bajo nombres
+distintos —para workflows no hay shadowing—, así que la lista es la única fuente confiable de
+cuál existe de verdad.
+
+*El workflow no está en ninguna forma.* Si no aparece ninguna entrada que termine en
+`:tasks-fanout`, el registro no lo tiene. Se arma al arrancar la sesión, así que un workflow
+creado o editado a mitad de sesión se cae de ahí. No ofrezcas `/tasks-fanout`: ese comando sale
+del mismo registro y tampoco va a existir. Lanzalo por ruta, que no depende del registro:
+
+```
+Workflow(scriptPath: "<ruta absoluta de tasks-fanout.js>",
          args: "docs/AAAA-MM-DD-<feature>")
 ```
+
+La ruta es `.claude/workflows/tasks-fanout.js` dentro del repo si el harness vive en el proyecto,
+o `workflows/tasks-fanout.js` dentro del directorio del plugin si vino empaquetado. Si no sabés
+cuál, buscalo con `Glob` en vez de suponer.
 
 Lo que nunca hagas, pase lo que pase, es armar el plan por afuera: el workflow existe para que la
 tabla de tareas tenga un único escritor. (El `Estado` y el `Registro` de cada tarea son otra
