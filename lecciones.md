@@ -4,7 +4,12 @@ Bitácora de lo que aprendemos usando el harness, para no perderlo entre sesione
 **qué pasó**, **por qué importa** y **qué habría que hacer**. Cuando algo se implementa, se marca
 resuelto con el commit, no se borra: saber por qué se hizo algo vale tanto como el cambio.
 
-Estados: `abierto` · `en observación` (sabemos que pasa, falta decidir si se toca) · `resuelto`.
+Estados: `abierto` (falta decidir el arreglo) · `en observación` (sabemos que pasa, falta decidir
+si se toca) · **`listo para aplicar`** (el arreglo está escrito acá, solo falta hacerlo) · `resuelto`.
+
+> **No aplicar nada mientras haya una prueba del harness en curso.** Cambiar un skill o el workflow
+> a mitad de una corrida invalida el resultado: después no se puede distinguir qué causó qué. Los
+> arreglos `listo para aplicar` se juntan y se hacen todos al terminar el recorrido.
 
 ---
 
@@ -369,7 +374,7 @@ nombrar no es empezar.
 
 ---
 
-## L19 · Los `agentType` del workflow sufren el mismo namespacing que el workflow · `abierto`
+## L19 · Los `agentType` del workflow sufren el mismo namespacing que el workflow · `listo para aplicar`
 
 **Qué pasó.** Corriendo `tasks-fanout` desde el plugin (2026-09-06), el workflow falló en su primer
 paso: el script referencia `agentType: 'spec-scout'` y dentro de un plugin el agente se registra
@@ -398,10 +403,85 @@ las dos formas de distribución.
 **El orden ayuda:** el scout corre primero y solo, así que el prefijo queda resuelto antes del
 `parallel()` de los revisores — no hay N fallos concurrentes.
 
+**El arreglo, escrito.** Un helper al tope de `tasks-fanout.js`, y las cinco llamadas pasan de
+`agent(` a `agentP(`:
+
+```js
+let PREFIJO = null
+async function agentP(prompt, opts) {
+  if (PREFIJO !== null) return agent(prompt, { ...opts, agentType: PREFIJO + opts.agentType })
+  try {
+    return await agent(prompt, opts)            // el nombre pelado, que sirve fuera de un plugin
+  } catch (e) {
+    const lista = String(e?.message ?? e).match(/Available agents:\s*(.+)/)
+    if (!lista) throw e
+    const hit = lista[1].split(/[,\s]+/).find((n) => n.endsWith(':' + opts.agentType))
+    if (!hit) throw e
+    PREFIJO = hit.slice(0, -opts.agentType.length)
+    return agent(prompt, { ...opts, agentType: PREFIJO + opts.agentType })
+  }
+}
+```
+
+Cuidado al aplicarlo: el archivo es casi todo prompts entre backticks, así que después hay que
+correr `node .claude/checks/lint-workflow-literals.cjs`. Y resincronizar la copia del plugin.
+
 **Regla general que deja.** Cualquier referencia por nombre entre componentes del harness es
 sospechosa al empaquetar: el workflow por su nombre ([[L4]]), los agentes por su `agentType` (esta),
 y los skills precargados por `skills: [specify]` ([[L2]], todavía sin verificar). Las tres son la
 misma clase de fallo.
+
+---
+
+## L20 · El workflow no declara `meta.phases`, y tres títulos no podrían matchear · `listo para aplicar`
+
+**Qué pasó.** Corriendo `tasks-fanout` desde el plugin (2026-09-06) casi no se veía avance de los
+subagentes. La corrida estaba sana —el scout terminó, nueve revisores corrieron en paralelo y los
+resultados volvieron— pero no había nada que mirar.
+
+**Por qué.** Tres cosas sumadas, y solo una es del harness:
+
+1. **Los workflows siempre corren en segundo plano.** La vista viva es `/workflows`; en el
+   transcript principal no se ve casi nada, por diseño. El propio resultado del tool lo dice.
+2. **El script no declara `meta.phases`.** El contrato del tool `Workflow` pide un `{ title }` por
+   cada llamada a `phase()`, con los títulos matcheados **exactos**. El script llama a `phase()`
+   cinco veces y no anuncia ninguna, así que la vista de progreso no tiene contra qué mostrar el
+   avance.
+3. **Esa corrida fue un *resume*.** Los agentes ya completados devuelven resultado cacheado al
+   instante, así que la primera fase pasa volando.
+
+**El agravante.** Aunque se agregara `meta.phases`, tres de los cinco títulos están interpolados y
+**nunca podrían matchear**, porque `meta` tiene que ser un literal puro:
+
+```js
+phase(`Ronda ${round}: revisión de ${toReview.length} tarea(s)`)   // línea 359
+{ phase: `Ronda ${round}: revisión` }                              // línea 389
+{ phase: `Ronda ${round}: reducción` }                             // línea 459
+```
+
+**El arreglo.** Títulos de fase estáticos, y el número de ronda al `label`, que sí es dinámico y es
+donde corresponde:
+
+```js
+export const meta = {
+  name: 'tasks-fanout',
+  description: '...',
+  phases: [
+    { title: 'Reconocimiento del spec' },
+    { title: 'Plan inicial desde cero' },
+    { title: 'Revisión de tareas' },
+    { title: 'Reducción' },
+    { title: 'Chequeo de consistencia' },
+    { title: 'Escritura de tasks.md' },
+  ],
+}
+```
+
+Con `phase('Revisión de tareas')` y `label: \`T${id} · ronda ${round}\`` en cada `agent()`.
+
+**Lección general.** Un título de fase interpolado se ve razonable al escribirlo y silenciosamente
+no aparece nunca en la vista de progreso. Nada avisa: no hay error, solo falta información. Lo que
+varía por corrida va en el `label`; lo que estructura el workflow va en el `title`.
 
 ---
 
