@@ -61,7 +61,7 @@ ranuras que el harness necesita.
 
 ---
 
-## L2 · La precarga `skills: [specify]` dentro de un plugin, sin verificar · `abierto`
+## L2 · La precarga `skills: [specify]` dentro de un plugin · `resuelto` — funciona
 
 **Qué pasó.** Seis de los siete subagentes (`dod-checker`, `plan-reducer`, `task-reviewer`,
 `task-writer`, `e2e-test-writer`, `e2e-triager`) declaran `skills: [specify]` en su frontmatter. Así
@@ -76,8 +76,22 @@ ninguna señal de la causa.
 tool calls, no su prosa: si va a leer `assets/tasks-template.md` con `Read` o `Glob`, la precarga no
 resolvió y está compensando a mano.
 
-**Si falla.** Calificar la referencia (`specify@<plugin>`) o duplicar el template dentro de cada
-agente. Las dos cambian el diseño, así que es decisión humana.
+**Verificado el 2026-09-06: funciona.** `task-writer`, corriendo desde el plugin sobre un proyecto
+sin `.claude/` propio, produjo un `tasks.md` con los **dos campos opcionales** del template en su
+lugar exacto: tres `Por qué no cubre criterios:` en las tres tareas con `Cubre: —`, y dos
+`Nota: reemplaza a T9` en las dos que salieron de dividir esa tarea. Además usó `Cubre: —` pelado,
+que es el formato actual, y no `— (infraestructura)`, que es el del `tasks.md` archivado.
+
+Esa es la prueba: el propio `specify` dice de esos dos campos que «son los únicos dos que no se
+pueden reconstruir releyendo el archivo». Existen solo en `assets/tasks-template.md`. Ningún agente
+inventa esa combinación —los tres y los dos, cada uno en la tarea correcta— sin tenerlo delante.
+
+**Lo que corrige.** La regla general que se anotó en [[L19]] —«cualquier referencia por nombre es
+sospechosa al empaquetar»— es **demasiado amplia**. El namespacing de plugin aplica a **workflows**
+([[L4]]) y a **agentes** ([[L19]]), pero **no** a los skills precargados por el frontmatter de un
+agente. Tres referencias por nombre, dos afectadas, una sana. Vale corregir la generalización en vez
+de arrastrarla: la regla real es que el namespacing aplica a lo que se **despacha** (un workflow que
+se lanza, un agente que se spawnea), no a lo que se **precarga** en el contexto.
 
 ---
 
@@ -426,10 +440,10 @@ async function agentP(prompt, opts) {
 Cuidado al aplicarlo: el archivo es casi todo prompts entre backticks, así que después hay que
 correr `node .claude/checks/lint-workflow-literals.cjs`. Y resincronizar la copia del plugin.
 
-**Regla general que deja.** Cualquier referencia por nombre entre componentes del harness es
-sospechosa al empaquetar: el workflow por su nombre ([[L4]]), los agentes por su `agentType` (esta),
-y los skills precargados por `skills: [specify]` ([[L2]], todavía sin verificar). Las tres son la
-misma clase de fallo.
+**Regla general que deja, ya acotada por [[L2]].** El namespacing aplica a lo que se **despacha**
+—un workflow que se lanza por nombre ([[L4]]), un agente que se spawnea por `agentType` (esta)— y
+**no** a lo que se **precarga** en contexto: `skills: [specify]` resolvió bien, verificado. Al
+empaquetar, revisar los puntos de despacho; los de precarga andan.
 
 ---
 
