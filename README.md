@@ -266,7 +266,9 @@ que apuntarlo adentro del plugin en vez de a una ruta del repo.
 ## Estado y límites conocidos
 
 El harness funciona de punta a punta. Estas son las cosas que todavía no se sostienen solas, y
-están acá porque un método que no dice dónde es frágil se lee como si no lo fuera:
+están acá porque un método que no dice dónde es frágil se lee como si no lo fuera. La lista
+completa y viva, con lo que habría que hacer en cada caso, está en
+[`lecciones.md`](./lecciones.md):
 
 - **El ciclo e2e nunca corrió entero.** Este proyecto es lógica de dominio pura — sin UI, sin
   servidor — así que no hay nada que Playwright pueda manejar. La fase 1 detecta esa ausencia y
