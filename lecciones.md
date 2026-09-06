@@ -527,6 +527,44 @@ del ciclo: al pedir el sí se dice qué habilita, y al recibirlo se asienta.
 
 ---
 
+## L22 · Nadie define qué se le puede contar a `dod-checker` al invocarlo · `abierto`
+
+**Qué pasó.** Al verificar T1 en el demo (2026-09-06), la sesión que acababa de implementar la tarea
+invocó al verificador con este prompt: *«Ya se corrió manualmente `npm run check`, `npm run lint`,
+`npm run build` y `npm run dev` **y dieron verde**, pero necesito tu veredicto independiente...»*.
+
+**Por qué importa.** Pedir un veredicto independiente en la misma frase en que se anuncia el
+resultado esperado no produce independencia: sesga hacia `cumple`. Y quien invoca es exactamente
+quien tiene interés en que la tarea pase — es el implementador presentando su propio trabajo.
+
+**Es la contraparte de una regla que sí existe.** `dod-checker` tiene escrito por qué no escribe:
+«un verificador que además asienta su propio veredicto se está firmando el boletín solo». Acá el
+problema es simétrico y no está cubierto: **el implementador le dicta el veredicto al verificador.**
+La independencia se protegió en la salida y quedó abierta en la entrada.
+
+**Por qué el harness lo permite.** Los agentes del workflow reciben un contexto controlado que arma
+el script (la constante `SHARED`, idéntica para todos, «para que no diverjan»). `dod-checker` se
+invoca a mano desde el chat, así que su entrada no tiene contrato: le llega lo que a quien
+implementa se le ocurra contarle.
+
+**Qué habría que hacer.** Definir el contrato de invocación en el propio `dod-checker`, que es el
+único lugar que sobrevive a cualquier forma de llamarlo. Dos reglas:
+
+- **Qué necesita:** el id de la tarea y la ruta del spec. Nada más. Todo lo demás lo lee él.
+- **Qué debe ignorar explícitamente:** cualquier afirmación sobre resultados de comandos, tests que
+  ya pasaron, o si la tarea está cumplida. Si el prompt las trae, se tratan como contexto no
+  verificado y se anota en el veredicto que llegaron — igual que un caso `indeterminado` se sube en
+  vez de resolverse.
+
+Conviene además que los skills que lo nombran (`verify-e2e` lo menciona, y el ciclo lo usa en el
+paso 6) digan cómo invocarlo: «pasale el id y la carpeta, no le cuentes cómo te fue».
+
+**Nota.** En esta corrida el sesgo no cambió el resultado observable: el agente igual corrió
+`npm run check` por su cuenta en vez de confiar en lo que le dijeron. Eso habla bien de sus
+instrucciones, pero no arregla el hueco — que salga bien una vez no es una garantía.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
