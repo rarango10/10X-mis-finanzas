@@ -55,7 +55,7 @@ Recordatorios al escribir:
 - Numeración: los criterios se citan como R1.1, R1.2 desde design.md y desde los tests.
   Si insertás un requisito nuevo en el medio, revisá qué referencias quedan desfasadas.
 - Un criterio, un comportamiento. Si tiene un "y también", probablemente son dos criterios.
-- Verificable: alguien tiene que poder escribir un test de Vitest que falle si no se cumple.
+- Verificable: alguien tiene que poder escribir un test automatizado que falle si no se cumple.
   "El sistema debe ser rápido" no es verificable; "THE SYSTEM SHALL responder en menos de 2 s
   para archivos de hasta 5.000 filas" sí.
 - Sin implementación: nada de nombres de funciones, archivos ni librerías acá. Si te sale

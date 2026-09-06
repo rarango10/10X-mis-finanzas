@@ -49,7 +49,7 @@ Después:
 
 1. **Escribí `design.md`** en la misma carpeta, siguiendo `assets/design-template.md`.
 2. **Referenciá los requisitos**: cada decisión de diseño existe para satisfacer algo. Enlazá secciones con los ids (`R1.2`) y, en la estrategia de testing, mapeá qué test cubre qué criterio.
-3. **Diseñá para lo que hay**: seguí los patrones del código existente y las reglas del proyecto (TypeScript + Node, Vitest, no agregar dependencias sin necesidad). Si una dependencia o una capa nueva parece necesaria, justificá por qué el requisito no se puede satisfacer sin ella.
+3. **Diseñá para lo que hay**: seguí los patrones del código existente y las reglas que declara `CLAUDE.md` — su stack, sus comandos de verificación, y las restricciones que se haya puesto el proyecto (por ejemplo, no agregar dependencias sin necesidad). Si una dependencia o una capa nueva parece necesaria, justificá por qué el requisito no se puede satisfacer sin ella.
 4. **Dejá registro de lo descartado**: qué alternativas consideraste y por qué no. Eso evita rediscutir lo mismo en tres semanas.
 5. **Presentá y esperá aprobación**, igual que en la fase 1.
 

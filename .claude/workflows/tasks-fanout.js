@@ -247,9 +247,11 @@ todos los revisores que vienen después trabajan con lo que devuelvas vos.
    sin note pierde el rastro de a qué tarea reemplazó. Si no existe tasks.md, tasksExist = false
    y tasks = []. Transcribí también "Criterios sin tarea asignada" si tiene contenido real.
 4. Relevá el estado real del proyecto: rama actual, últimos commits (git log --oneline -15),
-   git status, la estructura de src/ (o la que haya), y si existe package.json corré los comandos
-   de verificación de CLAUDE.md (npm run typecheck y npm test) y pegá el resultado literal —
-   pasa/falla y cuántos tests. Si no hay package.json, decilo explícitamente.
+   git status, la estructura del código fuente (src/ o la que haya), y corré los comandos que
+   CLAUDE.md declara en su sección "Comandos de verificación" — los de este proyecto, no una lista
+   fija. Pegá el resultado literal: pasa/falla y cuántos tests. Si CLAUDE.md no declara comandos,
+   o el manifiesto de dependencias del proyecto no existe, decilo explícitamente en vez de
+   inventar un comando.
 
 No modifiques ningún archivo.`,
   { schema: SCOUT_SCHEMA, agentType: 'spec-scout', model: 'sonnet', label: 'scout' },

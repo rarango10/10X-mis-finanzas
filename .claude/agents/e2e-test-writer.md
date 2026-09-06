@@ -41,7 +41,8 @@ en paralelo es un resultado más que después hay que reconciliar con el suyo.
    algo que nunca se probó, que es peor que un test que falla.
 6. **Afirmá sobre lo observable**, que es lo que dice el plan en «Resultado esperado»: texto en
    pantalla, elementos visibles, la URL. No consultes estado interno ni importes nada de `src/`
-   para verificar: eso es un test de unidad con un browser al lado, y esos ya existen en Vitest.
+   para verificar: eso es un test de unidad con un browser al lado, y de esos ya se ocupa la suite
+   de tests del proyecto.
 7. **Preferí selectores por rol y texto accesible** (`getByRole`, `getByLabel`, `getByText`) antes
    que CSS o XPath. Un selector estructural convierte cualquier cambio de maquetado en un fallo
    e2e, y ese fallo va a costar una ronda entera de diagnóstico para terminar en «el test estaba

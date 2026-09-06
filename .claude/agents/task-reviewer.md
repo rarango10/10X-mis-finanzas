@@ -33,8 +33,8 @@ implementación, no al planificar.
 4. **Estado real del código.** Mirá con `Read`/`Glob`/`Grep` qué existe de verdad y contrastalo
    con el resumen de estado del proyecto que te pasa el prompt. Si el código ya satisface la
    tarea, veredicto `status` con `newStatus: "hecho"`; si está a medias, `"en curso"`.
-   **No corras `npm test` ni `npm run typecheck`**: el workflow ya los corrió una vez y te pasa
-   el resultado. Correrlos otra vez en paralelo es desperdicio y puede pisarse entre agentes.
+   **No corras los comandos de verificación del proyecto**: el workflow ya los corrió una vez y te
+   pasa el resultado. Correrlos otra vez en paralelo es desperdicio y puede pisarse entre agentes.
    Por eso tu `status` es una **señal de planificación** leída del estado del repo, no una
    verificación: decís que el código *parece* cubrir la tarea. Comprobar de verdad que una tarea
    implementada cumple sus criterios —corriendo los tests y leyendo el código contra cada uno— es

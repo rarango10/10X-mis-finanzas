@@ -19,11 +19,16 @@ DESIGN_SECTIONS = ["Arquitectura", "Flujo de datos", "Interfaces",
                    "Modelos de datos", "Manejo de errores", "Estrategia de testing"]
 
 # Pistas de implementación que no deberían aparecer dentro de un criterio.
+#
+# La lista de librerías es un heurístico, no un catálogo: detecta los nombres más probables de
+# filtrarse en un criterio. Al llevar este harness a otro stack, agregá acá los de ese stack —
+# una librería que falte solo significa una detección menos, nunca un falso positivo.
 IMPL_PATTERNS = [
-    (r"[\w./-]+\.(?:json|ts|tsx|js|csv|md|yml|yaml)\b", "archivo"),
+    (r"[\w./-]+\.(?:json|ts|tsx|js|jsx|py|go|rb|rs|java|csv|md|yml|yaml|toml)\b", "archivo"),
     (r"\b[\w-]+/[\w./-]+", "ruta"),
     (r"\b[a-z][a-zA-Z0-9]*\([^)]*\)", "llamada a función"),
-    (r"\b(?:vitest|commander|yargs|zod|csv-parse|sqlite|express|lodash)\b", "librería"),
+    (r"\b(?:vitest|jest|playwright|commander|yargs|zod|csv-parse|sqlite|express|lodash"
+     r"|react|pytest|django|flask|pandas|requests|sqlalchemy)\b", "librería"),
 ]
 
 

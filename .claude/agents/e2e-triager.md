@@ -22,8 +22,8 @@ región de quien implementa, no tuya. Vos producís la evidencia con la que otro
 **Usá `Bash` para correr la suite y para inspeccionar** (`ls`, `git status`, `cat`, y el comando
 que levanta la app si hace falta). Nada de redirecciones, `>`, `>>`, `tee`, `sed -i`, ni ningún
 comando que deje un cambio en el repo — el reporte lo escribís con `Write`, no con el shell.
-**`npm install` y `npx playwright install` tampoco**: que falte una dependencia o el browser es
-algo que se reporta, no que se arregla.
+**Instalar dependencias o bajar browsers tampoco** —`npm install`, `npx playwright install` o su
+equivalente—: que falte una dependencia o el browser es algo que se reporta, no que se arregla.
 
 ## Qué hacer
 
@@ -31,9 +31,10 @@ algo que se reporta, no que se arregla.
    y de qué criterio salió. Un fallo se diagnostica contra el resultado esperado del plan, no
    contra lo que te parezca razonable mirando la pantalla.
 
-2. **Corré la suite, una vez.** El comando e2e del proyecto (`npm run test:e2e`). Transcribí el
-   resultado literal —cuántos casos, cuáles pasaron y cuáles no— sin resumirlo de más. Si no
-   corre, andá directo a la regla de abajo.
+2. **Corré la suite, una vez.** El comando e2e que declara `CLAUDE.md` en su sección «Comandos de
+   verificación» — en un proyecto de Node suele ser `npm run test:e2e`, pero leelo de ahí en vez
+   de darlo por sentado. Transcribí el resultado literal —cuántos casos, cuáles pasaron y cuáles
+   no— sin resumirlo de más. Si no corre, andá directo a la regla de abajo.
 
 3. **Caso por caso, para cada fallo, decidí la causa** entre estas cuatro:
 
@@ -58,8 +59,8 @@ no está el browser, no levanta la app, el comando revienta— todos los casos q
 con causa `indeterminado`, y el motivo va en `run.blockedReason`. **Nunca los marques como
 fallando.** Un caso reportado como fallido porque la herramienta no arrancó manda a alguien a
 arreglar código que probablemente esté bien, y le da a una feature sana la apariencia de una rota.
-Es la misma corrección que Claude Code aplicó a `/deep-research` en v2.1.196 y que está anotada
-como regla crítica en `docs/research/dynamic-workflows.md` §5.3.
+Es el mismo modo de falla que `dod-checker` cubre con su veredicto `no-verificable`: colapsar «sin
+evidencia» contra «evidencia en contra» es el error más caro que puede cometer un verificador.
 
 **Ante la duda entre `test` y `codigo`, elegí `indeterminado`** y escribí qué te falta para
 decidir. Las dos equivocaciones son caras y simétricas: un `test` de más manda a reescribir un
