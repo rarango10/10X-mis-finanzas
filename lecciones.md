@@ -195,6 +195,60 @@ implementar.
 
 ---
 
+## L13 · El comando de verificación puede conflacionar corrección con estilo · `abierto`
+
+**Qué pasó.** El `CLAUDE.md` que el harness ayudó a escribir para `my-harness-demo` (2026-09-06)
+declaró que `dod-checker` corre `npm run verify`, una cadena de typecheck → lint → test → build.
+
+**Por qué importa.** `dod-checker` responde una sola pregunta: ¿el código cumple los criterios de
+aceptación? Con lint adentro del comando, una queja de formato hace fallar la verificación y la
+tarea se reporta como no verificable o incumplida por una razón que no tiene nada que ver con su
+criterio. Con `build` adentro, cada verificación de tarea dispara un bundle de producción. Las dos
+cosas ensucian el veredicto, que es el registro durable de qué está hecho.
+
+**Qué habría que hacer.** Que la guía para escribir `CLAUDE.md` —el futuro `/harness-init` de
+[[L1]]— distinga dos comandos con propósitos distintos: el de **corrección** (typecheck + tests),
+que es el del paso 6, y el de **higiene** (lint, formato, build), que es previo al commit. Hoy la
+sección «Comandos de verificación» invita a poner todo junto porque no dice que sean cosas
+separadas.
+
+---
+
+## L14 · `CLAUDE.md` se metió en territorio de `design.md` · `abierto`
+
+**Qué pasó.** El mismo archivo incluyó una sección **Estructura** fijando `App.tsx`, `calc.ts` y
+`main.tsx` antes de que existiera ningún spec.
+
+**Por qué importa.** `CLAUDE.md` es el contrato del proyecto: stack, comandos, reglas permanentes.
+La arquitectura es lo que decide `specify` fase 2. Con la estructura ya escrita, el `design.md` va a
+ratificar en vez de diseñar, y se pierde justo la parte donde se consideran alternativas. La regla
+de un solo productor por documento se rompe antes de que arranque el ciclo.
+
+**Dónde está el límite.** Una regla como «la lógica va en funciones puras separadas de la UI» sí es
+del contrato: vale para toda feature, no solo para esta. Un árbol de archivos concreto no.
+
+**Qué habría que hacer.** Que la guía de `CLAUDE.md` diga explícitamente qué **no** va: nombres de
+archivos, módulos o componentes concretos. Eso es del design.
+
+---
+
+## L15 · Decidió el stack sin preguntar, habiéndoselo pedido · `en observación`
+
+**Qué pasó.** El prompt del paso 1 decía «proponeme el stack y preguntame lo que necesites decidir».
+Escribió React + Testing Library + Biome directamente, sin consultar — y el propio archivo admite
+que «para tres casillas y dos botones alcanza con CSS plano y `useState`».
+
+**Por qué importa.** No es un error de resultado —React es defendible y hasta conveniente para
+probar el ciclo e2e, que nunca corrió— sino de compuerta: se le pidió consultar y no consultó. El
+harness entero se apoya en que cada paso se detenga y espere. Si la consulta se saltea en el paso 0,
+donde está escrita en el prompt del humano, vale preguntarse cuánto aguantan las que están escritas
+en la prosa de un skill.
+
+**Qué habría que hacer.** Observarlo en los pasos siguientes antes de tocar nada. Si vuelve a pasar
+en un paso con compuerta declarada, deja de ser anécdota y pasa a [[L8]].
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
