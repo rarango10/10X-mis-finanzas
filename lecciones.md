@@ -21,10 +21,38 @@ para llevar el harness a otro proyecto — o sea, es exactamente el paso que má
 sea el único sin dueño convierte la reutilización en trabajo manual justo donde debería ser un
 comando. En un repo que ya existe no se nota; en uno nuevo, es lo primero que se topa.
 
-**Qué habría que hacer.** Un paso 0 con dueño: un comando `/harness-init` o un skill que mire el
-repo, proponga stack y comandos de verificación, pregunte lo que no pueda deducir, y escriba el
-`CLAUDE.md` con la tabla de ruteo y las reglas. `/init` no alcanza: sobre una carpeta vacía no
-tiene nada que analizar.
+**Qué habría que hacer.** Un paso 0 con dueño: `/harness-init`, un skill del plugin que siembre
+`CLAUDE.md` **desde una plantilla y lo complete entrevistando**. Las dos mitades hacen falta y
+arreglan cosas distintas:
+
+- **La plantilla restringe por estructura, no por prosa.** Es lo que la hace valiosa: casi todo el
+  harness son compuertas de instrucción ([[L8]]), que se cumplen porque el modelo las lee. Una
+  plantilla sin sección «Estructura» hace que esa sección no exista — [[L14]] se vuelve imposible,
+  no improbable. Una plantilla con dos ranuras rotuladas por separado —el comando de **corrección**
+  que corre `dod-checker`, y el de **higiene** previo al commit— hace imposible [[L13]].
+- **La entrevista llena las ranuras.** Y una ranura sin llenar es una pregunta visible: un
+  `<stack: preguntá antes de completar>` que quedó sin tocar se ve en el archivo. Una generación
+  libre que decidió sola no deja ninguna marca — que es justo lo que pasó en [[L15]].
+
+**Qué NO debe sembrar.** Las plantillas de documentos (`requirements-template.md`,
+`design-template.md`, `tasks-template.md`, `e2e-tests-plan-template.md`) ya viajan en `assets/` de
+los skills que las usan, y por eso seis agentes las conocen vía `skills: [specify]`. Copiarlas al
+proyecto crea dos copias y la pregunta de cuál gana: es [[L5]] otra vez, y contradice la regla de un
+solo dueño por documento. La carpeta `docs/` tampoco: `specify` la crea cuando la necesita.
+
+**Qué sí conviene sembrar además del `CLAUDE.md`.** Los configs que codifican conocimiento del
+harness y que un proyecto nuevo no va a redescubrir: `vitest.config.ts` excluyendo `end2end/` (si
+no, los dos runners se pelean por los `.spec.ts`) y `playwright.config.ts` con `retries: 0` (un caso
+que pasa al segundo intento es un hallazgo, no un caso resuelto). Eso es memoria del harness, no
+plomería genérica. Son por stack, así que arrancar con uno y agregar a medida que aparezcan.
+
+**Dónde vive la plantilla.** En `assets/` del propio skill, dentro del plugin. No en un repo de
+GitHub aparte: eso agrega un canal de distribución más, necesita red al inicializar, y se
+desincroniza del harness que la usa. El plugin ya viaja y ya se actualiza con `claude plugin
+update`.
+
+**Por qué `/init` no alcanza.** Sobre una carpeta vacía no tiene nada que analizar, y no conoce las
+ranuras que el harness necesita.
 
 ---
 
