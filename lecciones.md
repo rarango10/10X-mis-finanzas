@@ -328,6 +328,40 @@ y el brainstorming— decidieron sin preguntar, y el segundo además lo atribuy�
 
 ---
 
+## L18 · El paso siguiente se nombra después de aprobar, no al pedir la aprobación · `abierto`
+
+**Qué pasó.** En el demo de la calculadora (2026-09-06), `brainstorming` presentó el diseño y cerró
+con «¿Aprobás este diseño?», sin mencionar `specify` ni qué venía después. La persona lo leyó como
+que el harness se había cortado.
+
+**Por qué el skill no lo incumplió.** Su sección se llama literalmente `## After Approval`: *«Once
+the human approves the design, stop. Tell them... the next step is the `specify` skill»*. El
+nombrado está condicionado a que la aprobación ya haya ocurrido. `specify` hace lo mismo con
+`planning-tasks`.
+
+**Por qué igual está mal.** La compuerta le pide a la persona que apruebe sin decirle hacia dónde
+está aprobando. Hay que saberse el ciclo de memoria para saber qué desbloquea el sí. La cadena
+queda descubrible solo en retrospectiva: te enterás del paso siguiente después de haberlo
+autorizado. En un repo donde la persona ya conoce el harness no se nota; en uno nuevo la cadena se
+corta ahí, porque el harness espera una frase que el usuario no sabe que tiene que decir.
+
+**Y agrava a [[L16]] y [[L17]].** Te piden aprobar un diseño con cuatro decisiones que nunca se
+preguntaron, sin avisarte que aprobarlo las convierte en criterios de aceptación numerados en
+`requirements.md`. De ahí en más quedan blanqueadas: nadie vuelve a cuestionar un `R2.3`. Saber eso
+al momento de decidir cambia con qué ojos se lee el diseño.
+
+**Qué habría que hacer.** Mover el nombrado del paso siguiente **al pedido de aprobación**, no
+después. La frase de cierre tiene que decir las dos cosas: qué se está aprobando y qué habilita
+—«si lo aprobás, sigue `specify`, que convierte esto en `requirements.md` con criterios numerados;
+después viene `planning-tasks`, que es otro paso»—. Vale para los tres skills con compuerta:
+`brainstorming` → `specify`, `specify` fase 1 → fase 2, `specify` fase 2 → `planning-tasks`. La
+sección `## After Approval` puede quedar, pero el nombrado no puede vivir **solo** ahí.
+
+**Lo que NO hay que hacer.** Arrancar el skill siguiente. La compuerta existe justamente ahí, y
+nombrar no es empezar.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
