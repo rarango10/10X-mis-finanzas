@@ -547,8 +547,19 @@ el script (la constante `SHARED`, idéntica para todos, «para que no diverjan»
 invoca a mano desde el chat, así que su entrada no tiene contrato: le llega lo que a quien
 implementa se le ocurra contarle.
 
+**Segunda ocurrencia, peor que la primera.** En la verificación siguiente el prompt de invocación
+pidió: «Devolvé el veredicto estructurado **(cumple / no cumple / parcial)**». El invocador
+**redefinió el vocabulario de veredictos** y borró `no-verificable` — precisamente el valor que había
+salvado la verificación anterior. Y el agente devolvió prosa en vez del JSON del contrato, sin
+`objectiveMet` ni `designDeviations`. Contaminar la entrada no solo sesga la conclusión: puede
+borrar del vocabulario la única salida correcta.
+
 **Qué habría que hacer.** Definir el contrato de invocación en el propio `dod-checker`, que es el
-único lugar que sobrevive a cualquier forma de llamarlo. Dos reglas:
+único lugar que sobrevive a cualquier forma de llamarlo. Tres reglas:
+
+- **El vocabulario de veredictos no es negociable.** Si el prompt propone otro conjunto de valores,
+  se ignora y se usa el del contrato. Un llamador no puede achicar el espacio de respuestas.
+
 
 - **Qué necesita:** el id de la tarea y la ruta del spec. Nada más. Todo lo demás lo lee él.
 - **Qué debe ignorar explícitamente:** cualquier afirmación sobre resultados de comandos, tests que
@@ -610,7 +621,7 @@ verificación normal, para producir un veredicto que la primera falla ya determi
 
 ---
 
-## L24 · `dod-checker` no tiene un paso que compare las dependencias contra `CLAUDE.md` · `abierto`
+## L24 · `dod-checker` no tiene un paso que compare las dependencias contra `CLAUDE.md` · `abierto` (2 de 2)
 
 **Qué pasó.** Verificando T1 (2026-09-06) no detectó `@testing-library/jest-dom` en
 `devDependencies`, que no figura en la lista de stack de `CLAUDE.md`. Reportó como único desvío el
@@ -634,13 +645,23 @@ en `CLAUDE.md`, y reportar en `designDeviations` **toda** entrada del primero qu
 segunda — esté o no declarada en la bitácora. Que el implementador ya la haya confesado no la saca
 del veredicto: cambia si es un desvío *registrado* o *silencioso*, y las dos cosas van al reporte.
 
+**Se repitió el mismo día, en una sesión limpia.** Segunda verificación de T1, otro proyecto en otra
+ruta, entorno sano: `@testing-library/jest-dom` volvió a pasar inadvertida. Dos de dos. No es
+variabilidad del modelo, es que el paso no existe.
+
+**Y esta vez tuvo consecuencia.** El `Objetivo` de T1 dice textualmente «No se agregó ninguna
+dependencia fuera del stack de CLAUDE.md». Es falso. Con el chequeo hecho, `objectiveMet` sería
+`false` y el veredicto tendría que ser `cumple-parcial`; sin él, salió `cumple` y la tarea estaba a
+un paso de marcarse `hecho`. El chequeo faltante no produce un reporte incompleto: **produce un
+veredicto equivocado.**
+
 **Relación con [[L22]].** Son las dos mitades del mismo fallo: L22 explica por qué el agente se dejó
 guiar por el relato del implementador; esta explica por qué no tenía un procedimiento propio con el
 que contrastarlo.
 
 ---
 
-## L25 · Un toolchain que no arranca paraliza el ciclo entero · `abierto`
+## L25 · Un proyecto verificado por agentes no puede vivir en una carpeta sincronizada · `resuelto`
 
 **Qué pasó.** En `my-harness-demo` (2026-09-06), `npm test` (vitest) y `npm run lint` (biome) se
 cuelgan sin producir resultado, de forma reproducible, con y sin el sandbox del harness. El `ps aux`
@@ -684,6 +705,28 @@ verificación puede hacer todo lo que hace el de implementación.
   build para un proyecto que va a ser verificado por agentes. Una combinación recién salida deja al
   verificador sin señal, y el ciclo se detiene con veredictos correctos (`no-verificable`) pero
   inútiles.
+
+**La causa real, confirmada el 2026-09-06.** No era el entorno bloqueando binarios, ni la
+combinación de versiones. Era **iCloud Drive**: el proyecto vivía en `~/Documents`, que estaba
+sincronizado («Escritorio y Documentos» activado), y sus `node_modules` tenían 6.288 archivos.
+Cada `import` del worker de vitest atravesaba `fileproviderd` —que estaba al 107% de CPU— y
+arrancar un worker tardaba ~100 segundos.
+
+Mover el proyecto a `~/dev` (fuera de la sincronización) lo resolvió, con un número que no deja
+dudas:
+
+| | En `~/Documents` (iCloud) | En `~/dev` |
+|---|---|---|
+| `prepare` del worker | **97.170 ms** | **34 ms** |
+| Corrida completa | 225 s, sin recolectar nada | **734 ms**, verde |
+
+Casi tres mil veces. Las versiones importaban solo porque vitest 5 tiene un timeout de worker de
+60 s y era el único que lo notaba: los tres estaban degradados, uno avisaba.
+
+**Por qué costó tanto llegar.** El síntoma apuntó, en orden, al subagente, al sandbox, al plugin y
+a las versiones —cuatro sospechosos equivocados— antes de llegar a la causa. Lo que lo destrabó fue
+comparar contra **otro proyecto de la misma máquina** corriendo el mismo tipo de comando. Esa es la
+pregunta que vale la pena institucionalizar.
 
 **Lo que sí quedó demostrado.** El harness supone, sin decirlo en ninguna parte, que el entorno de
 verificación puede ejecutar el runner de tests del proyecto. Cuando no puede, ninguna tarea llega a
