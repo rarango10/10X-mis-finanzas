@@ -5,11 +5,12 @@ description: "Explica el ciclo de desarrollo asistido de este harness y enruta a
 
 # Harness — el ciclo y su ruteo
 
-Este plugin trae un ciclo de desarrollo de ocho pasos. Cada paso produce un artefacto, se
+Este plugin trae un ciclo de desarrollo de nueve pasos, contando el paso 0 que prepara el proyecto. Cada paso produce un artefacto, se
 detiene y espera aprobación humana. **Ningún paso arranca al que le sigue: lo nombra.**
 
 | # | Producto | Lo produce | Se pide diciendo |
 |---|----------|------------|------------------|
+| 0 | el `CLAUDE.md` del proyecto | skill `harness-init` | «preparemos el proyecto», «no hay CLAUDE.md» |
 | 1 | diseño acordado (en el chat) | skill `brainstorming` | «quiero agregar X», «cómo construimos Y» |
 | 2 | `requirements.md` | skill `specify`, fase 1 | «escribamos el spec» |
 | 3 | `design.md` | skill `specify`, fase 2 | «pasemos al diseño» |
@@ -38,7 +39,9 @@ que declarar al menos:
   criterio.
 - **Stack y reglas** — el contrato del proyecto, que `specify` respeta al diseñar.
 
-Si el proyecto no tiene `CLAUDE.md`, decilo antes de arrancar: no lo inventes ni asumas `npm`.
+Si el proyecto no tiene `CLAUDE.md`, **no lo inventes ni asumas `npm`**: ese archivo tiene
+productor, y es el skill `harness-init` del paso 0. Nombralo y parate ahí — sembrarlo a mano es
+justo lo que hacía que llevar el harness a otro repo fuera trabajo manual.
 
 ## Las cuatro reglas que sostienen el ciclo
 

@@ -42,6 +42,7 @@ tarea cambie una línea.
 
 | # | Documento | Lo produce | Se pide diciendo |
 |---|-----------|------------|------------------|
+| 0 | este `CLAUDE.md` | skill `harness-init` | «armemos el contrato», «preparemos el proyecto» |
 | 1 | diseño acordado (en el chat, sin archivo) | skill `brainstorming` | «quiero agregar X», «cómo construimos Y» |
 | 2 | `requirements.md` | skill `specify`, fase 1 | «escribamos el spec», «definamos los criterios» |
 | 3 | `design.md` | skill `specify`, fase 2 | «pasemos al diseño» |

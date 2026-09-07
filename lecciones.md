@@ -13,7 +13,7 @@ si se toca) · **`listo para aplicar`** (el arreglo está escrito acá, solo fal
 
 ---
 
-## L1 · `CLAUDE.md` no tiene productor · `abierto`
+## L1 · `CLAUDE.md` no tiene productor · `resuelto`
 
 **Qué pasó.** Al abrir el harness sobre una carpeta en blanco (`my-harness-demo`, 2026-09-06), el
 router explicó bien el ciclo y detectó que faltaba `CLAUDE.md`. Pero ahí se corta: los siete pasos
@@ -264,7 +264,7 @@ implementar.
 
 ---
 
-## L13 · El comando de verificación puede conflacionar corrección con estilo · `resuelto parcialmente`
+## L13 · El comando de verificación puede conflacionar corrección con estilo · `resuelto`
 
 **Qué pasó.** El `CLAUDE.md` que el harness ayudó a escribir para `my-harness-demo` (2026-09-06)
 declaró que `dod-checker` corre `npm run verify`, una cadena de typecheck → lint → test → build.
@@ -284,12 +284,13 @@ separadas.
 **Resuelta a medias en el Lote 5b, y conviene saber cuál mitad.** El `CLAUDE.md` **de este repo**
 tenía el mismo defecto que el del demo —tres comandos bajo un rótulo único— y se separó en dos
 ranuras rotuladas, porque sin eso `implement-task` y `close-feature` no tenían contra qué bindear.
-Lo que sigue abierto es el origen: **la plantilla con las dos ranuras**, que es lo que hace el
-defecto imposible en un proyecto nuevo en vez de arreglarlo en uno viejo. Eso es el Lote 6.
+La otra mitad —**la plantilla con las dos ranuras**, que hace el defecto imposible en un proyecto
+nuevo en vez de arreglarlo en uno viejo— se cerró en el Lote 6, en
+`harness-init/assets/CLAUDE.template.md`.
 
 ---
 
-## L14 · `CLAUDE.md` se metió en territorio de `design.md` · `abierto`
+## L14 · `CLAUDE.md` se metió en territorio de `design.md` · `resuelto`
 
 **Qué pasó.** El mismo archivo incluyó una sección **Estructura** fijando `App.tsx`, `calc.ts` y
 `main.tsx` antes de que existiera ningún spec.
@@ -1449,6 +1450,61 @@ andamiaje ausente no es un hallazgo.
 Vale notar que el defecto se encontró **corriendo el comando**, no leyéndolo. `CLAUDE.md` decía
 «playwright test» y la declaración de la dependencia estaba: los dos archivos que había que leer
 decían que funcionaba.
+
+## Lote 6 aplicado — 2026-09-07
+
+L1 resuelta, y con ella L13 (que había quedado a medias en el Lote 5b) y L14. El paso 0 tiene
+productor: `.claude/skills/harness-init/`, con su plantilla y sus configs por stack.
+
+**Las dos mitades quedaron escritas como dos mitades.** La plantilla restringe por estructura —no
+tiene sección «Estructura», así que **L14 pasa de improbable a imposible**; tiene dos ranuras de
+comandos rotuladas por separado, así que **L13 tampoco está disponible**—. La entrevista llena las
+ranuras, y no decide: el stack se pregunta siempre, incluso cuando la respuesta parece obvia, y
+cualquier recomendación va etiquetada con su origen.
+
+**El mecanismo de la ranura visible se volvió un chequeo, y eso no estaba en el plan.** La plantilla
+usa `<algo: preguntá antes de completar>`, y el skill cierra con un `grep` de ese literal sobre el
+archivo escrito. Era la parte más linda de L1 —«una ranura sin llenar se ve; una generación libre
+que decidió sola no deja ninguna marca»— pero seguía siendo prosa: alguien tenía que acordarse de
+mirar. Ahora es un comando con salida verificable. Probado sobre la plantilla cruda (encuentra las
+seis) y sobre una a medio llenar (encuentra las dos que faltaban).
+
+**Modo revisión, que tampoco estaba en el plan y se ganó su lugar el mismo día.** Si ya hay un
+`CLAUDE.md`, el skill no lo pisa: lo revisa contra las cuatro cosas que el harness necesita y
+propone. La razón de agregarlo es empírica y muy corta: **es exactamente lo que hubo que hacer a mano
+en el Lote 5b sobre este repo**, cuando apareció que su sección de comandos tenía el mismo defecto
+que la del demo. Si el trabajo ya se hizo una vez a mano, tiene dueño.
+
+**Los configs se siembran con sus comentarios, y eso es una instrucción, no un detalle.** El
+`vitest.config.ts` que excluye `end2end/` y el `playwright.config.ts` con `retries: 0` viajan con la
+explicación de por qué existen. Sin ella, el primero que los lea borra la exclusión por parecer
+arbitraria — y esa exclusión es literalmente el bug de [[L33]], el que invalidó un veredicto sin que
+la tarea cambiara.
+
+**La estructura del directorio codifica «por stack».** `assets/stacks/typescript-node/` es una
+carpeta, no una lista adentro de un archivo: agregar un stack es agregar una carpeta. Y para un stack
+que no está, el skill dice explícitamente **qué problema resuelve cada config** y deja que la persona
+lo traduzca, en vez de improvisar un config para un runner que no conoce.
+
+**El callejón sin salida del router se cerró.** Decía «si el proyecto no tiene `CLAUDE.md`, decilo
+antes de arrancar» y ahí terminaba — que es la forma exacta del hueco de L1: detectaba bien y no
+tenía a dónde mandar. Ahora nombra el productor.
+
+**`git init` se ofrece en el paso 0**, que es donde corresponde. `implement-task` lo sigue
+comprobando: dos redes para la misma caída, y la segunda es barata.
+
+### Lo que este lote no puede probar todavía
+
+Se verificó el **mecanismo**, no la **conducta**: que la plantilla no tiene sección «Estructura», que
+las dos ranuras están rotuladas, que el `grep` encuentra lo que falta, y que `spec-scout` y
+`dod-checker` siguen encontrando la sección que buscan por nombre. Nada de eso dice que la entrevista
+vaya a preguntar el stack en vez de decidirlo — eso es conducta y solo se ve usándolo.
+
+Es la misma limitación que el Lote 2 anotó para `dod-checker`, y la respuesta es la misma: la prueba
+es rehacer el demo desde una carpeta vacía. Con la diferencia de que **este lote es el único cuyo
+valor ya se midió**: el `vitest.config.ts` con la exclusión estaba escrito en L1 desde antes de que
+el bug ocurriera, el demo no lo tuvo porque el skill que debía sembrarlo no existía, y el bug apareció
+exactamente donde la lección decía.
 
 ---
 
