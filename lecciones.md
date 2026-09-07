@@ -801,6 +801,39 @@ que por la regla de composición deja la tarea en `cumple-parcial`.
 
 ---
 
+## L28 · La granularidad de la compuerta dentro del paso 5 no está definida · `abierto`
+
+**Qué pasó.** Al llegar a T3 del demo (2026-09-06) se propuso implementar T3, T4 y T5 de corrido sin
+aprobación humana entre ellas. La persona lo rechazó: rompe la naturaleza semiautomática del harness.
+Tenía razón — y lo que hizo posible la propuesta es que **ningún archivo del harness dice cuál es la
+unidad de la compuerta en la fase de implementación**.
+
+`CLAUDE.md` dice «cada paso espera aprobación humana antes del siguiente». La tabla tiene siete
+pasos, y el paso 5 contiene N tareas. Con once tareas adentro, esa frase admite dos lecturas
+incompatibles: una compuerta por paso (una para las once) o una por tarea (once). Nada resuelve
+cuál.
+
+**Por qué importa más de lo que parece.** Es el único punto del ciclo donde la ambigüedad se resuelve
+a favor de menos supervisión sin contradecir ninguna regla escrita. Y es la fase más larga: once
+tareas contra seis documentos. Un lector que quiera ir rápido puede batchear la implementación
+entera y quedarse formalmente dentro del método.
+
+**La decisión de la persona, para escribir.** **Una tarea, una compuerta.** El ciclo por tarea es
+rojo → verde → `dod-checker` → asentar el Registro → aprobación → siguiente. La aprobación entre
+tareas no es opcional ni acumulable.
+
+**El síntoma que delató la propuesta mala.** Batcheaba la implementación pero insistía en verificar
+de a una. Esa asimetría era la señal: si se confía lo bastante para correr tres tareas sin mirar,
+se confiaría también para verificarlas juntas. Una precaución puesta en un lado y no en el otro no
+es un diseño, es desconfianza mal repartida — y conviene tratarla como pista de que la propuesta
+está mal, no como prudencia.
+
+**Qué habría que hacer.** Escribirlo en `CLAUDE.md`, en la fila 5 de la tabla o en las Reglas: la
+unidad del paso 5 es **la tarea**, no la fase. Y en el `tasks-template.md`, que el ciclo por tarea
+incluye la aprobación como último acto antes de pasar a la siguiente.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
