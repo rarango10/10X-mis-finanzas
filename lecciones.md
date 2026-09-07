@@ -736,6 +736,35 @@ existe ese campo.
 
 ---
 
+## L26 · El `Registro` no tiene convención para un veredicto superado · `abierto`
+
+**Qué pasó.** T1 del demo (2026-09-06) se verificó tres veces: `no-verificable` la primera —por el
+bloqueo de iCloud—, y `cumple` la última, ya con el entorno sano y el contrato corregido. Quien
+implementa hizo lo correcto y **preservó las dos**, agregando un bloque `**Registro** — (continuación)`.
+El resultado es un Registro con dos líneas `**Verificación:**`, la primera obsoleta.
+
+**Por qué importa.** El template dice que sin un `cumple` en esa línea la tarea no pasa a `hecho`, y
+no dice nada sobre qué hacer cuando hay más de una. Quien lea de arriba hacia abajo —o un agente que
+busque la primera coincidencia de `**Verificación:**`— encuentra el `no-verificable` y concluye lo
+contrario de lo que pasó. La `Estado` dice `hecho` y la primera línea de verificación parece
+desmentirla.
+
+**Por qué no es culpa de quien escribió.** Preservar el historial es lo correcto: el propio harness
+insiste en que la bitácora vale por lo que registra del camino, no solo del resultado. El hueco es
+del formato, que asume una sola verificación por tarea y no dice cómo se ve una superada.
+
+**Qué habría que hacer.** Que `assets/tasks-template.md` fije una convención mínima y explícita: la
+línea `**Verificación:**` vigente es **la última**, y una superada se marca como tal
+(`~~superada~~` o un prefijo `Verificación previa:`). Es una línea de template y cierra una
+ambigüedad que solo aparece cuando algo salió mal — o sea, justo cuando más importa leer bien.
+
+**Contexto que lo hace más probable.** Una tarea se re-verifica siempre que el primer veredicto fue
+menor que `cumple`, que es el caso normal cuando el entorno falla ([[L25]]) o cuando el contrato
+tenía un hueco ([[L24]]). No es un caso raro: es el caso de toda tarea que no salió bien a la
+primera.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
