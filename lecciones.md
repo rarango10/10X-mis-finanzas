@@ -875,6 +875,52 @@ en el método lo pedía. Es exactamente el tipo de supuesto tácito que la reuti
 
 ---
 
+## L30 · La fase de implementación no tiene instrucción de cierre · `abierto`
+
+**Qué pasó.** En el demo (2026-09-06) la persona preguntó si `dod-checker` no debería dispararse solo
+al terminar de implementar. Revisando las cuatro tareas hechas, el comportamiento fue **inconsistente**:
+
+| Tarea | Qué hizo al terminar de implementar |
+|---|---|
+| T1 | Preguntó «¿Verificamos ahora, o seguimos con T2?» |
+| T2 | Verificó por su cuenta |
+| T3 | Verificó por su cuenta |
+| T5 | Paró sin verificar — quedó en `en curso` |
+
+Tres conductas distintas en cuatro tareas, sin que ninguna contradiga nada escrito.
+
+**Por qué el hueco existe.** Los pasos 1, 2, 3, 4 y 7 los produce un skill, y cada `SKILL.md` termina
+con su instrucción de cierre: nombrá el paso siguiente y pará. **El paso 5 dice «TDD, a mano»: no
+tiene skill, así que nadie le escribió el cierre.** Y la regla de `CLAUDE.md` —«ningún skill arranca
+al que le sigue»— leída literalmente no cubre este par: el paso 5 no es un skill y `dod-checker` es
+un subagente, no un skill.
+
+**Por qué debería ser automático.** Dos razones, y ninguna es comodidad:
+
+- **Una tarea implementada y sin verificar está en un estado inútil.** Queda en `en curso`, que es
+  indistinguible de «a medio hacer». No es un punto de reposo del ciclo: es un limbo donde nadie sabe
+  si el trabajo sirve.
+- **Preguntar «¿verifico?» pide autorizar algo sin contrapartida.** Verificar no tiene costo
+  irreversible, y sin el veredicto la persona no puede decidir nada. La compuerta que importa viene
+  después: aceptar el veredicto, asentarlo y pasar a la tarea siguiente.
+
+**Cómo cierra [[L28]].** Si la unidad de la compuerta es la tarea, entonces **una tarea termina con un
+veredicto, no con código**. Implementar y verificar son el mismo acto; la compuerta va al final del
+par, no en el medio.
+
+**Qué habría que hacer.** Escribir el cierre del paso 5 donde hoy no está. Dos opciones:
+
+- **Mínima:** una regla en `CLAUDE.md` — «terminada la implementación de una tarea, invocá
+  `dod-checker` sobre ella sin preguntar; la aprobación humana va después del veredicto».
+- **Completa:** darle un `SKILL.md` al paso 5, como tienen los demás. Sería además el lugar natural
+  para el commit por tarea de [[L29]] y para el contrato de invocación de [[L22]] — tres huecos que
+  existen porque esa fase es la única sin dueño.
+
+La segunda es más trabajo y resuelve más. Vale notar el patrón: **el paso 5 es el único sin skill, y
+acumula la mayor cantidad de reglas no escritas.**
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
