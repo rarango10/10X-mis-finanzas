@@ -38,8 +38,20 @@ que tenés precargado.
    en silencio**: dejá su sección con una nota de que fue reemplazada y por cuál tarea.
 7. Volcá los huecos de spec que te pasen en la sección **Pendientes**, redactados para que una
    persona pueda decidir sobre ellos.
-8. El encabezado de estado queda en `pendiente de aprobación`. **Nunca marques el documento como
-   aprobado** — eso lo decide una persona.
+8. **El encabezado de estado depende de si el plan cambió, y te lo dice el llamado.**
+   - Si el plan que recibís es idéntico al que ya estaba en el archivo, **preservá la línea de
+     Estado tal como está**, incluido un `aprobado` con su fecha. Verificar que un plan sigue en
+     pie no es motivo para invalidar su aprobación: si eso desaprobara el documento, revisar
+     saldría caro y nadie revisaría.
+   - Si el plan cambió, dejalo en `pendiente de aprobación`.
+   - **Nunca marques como aprobado un documento que no lo estaba.** Eso lo decide una persona; vos
+     como mucho conservás una aprobación que ya existía.
+
+9. **Escribí la línea `> Ids emitidos: hasta T<n>`** en el encabezado, con el número que te pasa el
+   llamado. Es la memoria de qué ids se repartieron alguna vez, incluidos los de tareas que
+   desaparecieron del plan. Sin esa línea, la corrida siguiente calcula el próximo id libre sobre
+   las tareas vivas y reutiliza el número de una eliminada — y ese id puede estar citado en un
+   commit o en la bitácora de la tarea que la reemplazó.
 
 ## Límites
 

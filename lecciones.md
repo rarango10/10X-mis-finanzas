@@ -229,7 +229,7 @@ podido.
 
 ---
 
-## L10 · Re-planificar desaprueba un plan que no cambió · `abierto`
+## L10 · Re-planificar desaprueba un plan que no cambió · `resuelto`
 
 **Qué pasó.** Si `tasks-fanout` corre sobre un `tasks.md` ya aprobado y todos los revisores
 devuelven `ok`, el escritor igual baja el encabezado de `aprobado` a `pendiente de aprobación`.
@@ -242,7 +242,7 @@ idéntico al que leyó el scout.
 
 ---
 
-## L11 · El próximo id libre se calcula sobre lo que quedó en el archivo · `abierto`
+## L11 · El próximo id libre se calcula sobre lo que quedó en el archivo · `resuelto`
 
 **Qué pasó.** Si desaparece la tarea de id más alto, la corrida siguiente vuelve a repartir ese
 número — justo lo que prohíbe la regla de numeración, porque ese id puede estar citado en un commit
@@ -409,7 +409,7 @@ nombrar no es empezar.
 
 ---
 
-## L19 · Los `agentType` del workflow sufren el mismo namespacing que el workflow · `listo para aplicar`
+## L19 · Los `agentType` del workflow sufren el mismo namespacing que el workflow · `resuelto`
 
 **Qué pasó.** Corriendo `tasks-fanout` desde el plugin (2026-09-06), el workflow falló en su primer
 paso: el script referencia `agentType: 'spec-scout'` y dentro de un plugin el agente se registra
@@ -468,7 +468,7 @@ empaquetar, revisar los puntos de despacho; los de precarga andan.
 
 ---
 
-## L20 · El workflow no declara `meta.phases`, y tres títulos no podrían matchear · `listo para aplicar`
+## L20 · El workflow no declara `meta.phases`, y tres títulos no podrían matchear · `resuelto`
 
 **Qué pasó.** Corriendo `tasks-fanout` desde el plugin (2026-09-06) casi no se veía avance de los
 subagentes. La corrida estaba sana —el scout terminó, nueve revisores corrieron en paralelo y los
@@ -1090,6 +1090,43 @@ extiende a casos no previstos.
 - **Un caso a citar.** Al redactar las reglas de [[L22]] y [[L32]] conviene tenerlo presente: explicar
   el principio funciona mejor que enumerar prohibiciones, y este es el ejemplo que lo demuestra
   dentro del propio proyecto.
+
+---
+
+## Lote 1 aplicado — 2026-09-07
+
+L19, L20, L11 y L10 resueltas en los commits `2ca3589` (L19+L20) y el siguiente (L11+L10).
+
+**L19** — helper `agentP()` en `tasks-fanout.js`, que descubre el prefijo del plugin leyéndolo del
+mensaje de error y lo cachea. Era el único defecto que **bloqueaba** el uso del harness empaquetado.
+
+**L20** — `meta.phases` declarado con seis títulos estáticos; el número de ronda se movió al `label`
+y a un `log()`. La regla quedó escrita en el propio `meta`.
+
+**L11** — el scout ahora reporta `maxIdIssued` leyéndolo de una línea nueva del encabezado
+(`> Ids emitidos: hasta T<n>`), y la semilla toma el máximo entre eso y el plan vivo. Degrada sola:
+si la línea no existe —archivos viejos— devuelve 0 y se cae al cálculo de antes.
+
+**L10** — el workflow compara en JS el plan final contra el que leyó el scout (ids, orden, título,
+`Cubre`, objetivo y primer test) y le dice al writer si preservar el encabezado. **El `Estado` queda
+fuera de la comparación a propósito**: lo escribe quien implementa, y una tarea que pasó a `hecho` no
+es un cambio de plan.
+
+### Dos cosas que aparecieron al aplicarlo
+
+**El linter había quedado mirando al vacío.** Al mover los cinco sitios de prompt a `agentP()`, el
+linter —que buscaba `agent(`— dejó de encontrar prompts reales y empezó a marcar como problema las
+tres llamadas internas del helper, que reciben el prompt en una variable. Se actualizó, y **se le
+agregó un guard**: si no encuentra ninguna llamada que revisar, falla en vez de pasar. Un linter que
+no encuentra nada pasa siempre, y eso es peor que uno que falla — si alguien renombra el helper, el
+chequeo se vuelve decorativo sin avisar. Es el mismo patrón de [[L20]]: algo deja de funcionar y no
+emite ninguna señal.
+
+**Un respaldo dentro de `~/.claude/skills/` se convierte en un plugin vivo.** Al copiar
+`harness-spike` a `harness-spike.bak-v2` antes de empezar, el backup se auto-cargó como un segundo
+harness en la sesión. Los respaldos van fuera de ese directorio —`~/.claude/backups/`— porque todo lo
+que hay adentro se carga. Vale para el README del [[L5]]: es la misma familia de problema que las dos
+copias del workflow.
 
 ---
 

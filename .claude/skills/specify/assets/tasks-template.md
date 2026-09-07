@@ -2,6 +2,13 @@
 
 > Requirements: [`./requirements.md`](./requirements.md) · Design: [`./design.md`](./design.md)
 > Estado: pendiente de aprobación | aprobado (AAAA-MM-DD)
+> Ids emitidos: hasta T<n>
+
+<La línea "Ids emitidos" es la memoria de qué ids ya se repartieron, **incluidos los de tareas que
+después desaparecieron del plan**. La escribe el workflow. Sin ella, una corrida futura calcularía
+el próximo id libre mirando solo las tareas vivas, y reutilizaría el número de una tarea eliminada
+— justo lo que la regla de numeración prohíbe, porque ese id puede estar citado en un commit o en
+la bitácora de otra tarea.>
 
 ## Plan
 

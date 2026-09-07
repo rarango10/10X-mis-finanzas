@@ -144,6 +144,10 @@ const SCOUT_SCHEMA = {
       },
     },
     tasksExist: { type: 'boolean' },
+    maxIdIssued: {
+      type: 'number',
+      description: 'Numero del id mas alto EMITIDO alguna vez, leido de la linea "Ids emitidos" del encabezado. 0 si esa linea no existe',
+    },
     tasks: { type: 'array', items: TASK_FULL },
     unassignedCriteria: {
       type: 'array',
@@ -289,7 +293,12 @@ todos los revisores que vienen después trabajan con lo que devuelvas vos.
    siempre: una tarea que se queda sin coversNote se relee como alcance que nadie pidió, y una
    sin note pierde el rastro de a qué tarea reemplazó. Si no existe tasks.md, tasksExist = false
    y tasks = []. Transcribí también "Criterios sin tarea asignada" si tiene contenido real.
-4. Relevá el estado real del proyecto: rama actual, últimos commits (git log --oneline -15),
+4. Del encabezado de tasks.md, transcribí el número de la línea "Ids emitidos: hasta T<n>" en
+   maxIdIssued. Si esa línea no está —archivos escritos antes de que existiera— devolvé 0: el
+   workflow cae al cálculo de siempre. Esa línea es la memoria de qué ids ya se repartieron,
+   incluidos los de tareas que después desaparecieron del plan; sin ella un id se puede reutilizar
+   y romper una referencia hecha desde un commit o desde una bitácora.
+5. Relevá el estado real del proyecto: rama actual, últimos commits (git log --oneline -15),
    git status, la estructura del código fuente (src/ o la que haya), y corré los comandos que
    CLAUDE.md declara en su sección "Comandos de verificación" — los de este proyecto, no una lista
    fija. Pegá el resultado literal: pasa/falla y cuántos tests. Si CLAUDE.md no declara comandos,
@@ -387,7 +396,13 @@ No escribas ningún archivo. Devolvé solo el JSON.`,
 // Fase 3 — Loop de rondas: fan-out de revisores -> reduce en JS -> reducer
 // ---------------------------------------------------------------------------
 
-let maxId = plan.reduce((m, t) => Math.max(m, idNum(t.id)), 0)
+// El maximo entre lo que el archivo registra como emitido y lo que el plan vivo muestra. Tomar
+// solo el plan vivo reutiliza el id de una tarea eliminada, que es justo lo que la regla de
+// numeracion prohibe: ese id puede estar citado en un commit o en una bitacora.
+let maxId = Math.max(
+  Number(scout.maxIdIssued) || 0,
+  plan.reduce((m, t) => Math.max(m, idNum(t.id)), 0),
+)
 let queue = plan.map((t) => t.id) // ronda 1: todas
 let round = 0
 
@@ -559,6 +574,26 @@ if (finalDupes.length) log(`Quedan ids duplicados: ${finalDupes.join(', ')}`)
 
 phase('Escritura de tasks.md')
 
+// L10 — Re-planificar no debe desaprobar un plan que no cambio. Se compara el plan final contra
+// el que leyo el scout: ids, orden, titulo, Cubre y los encabezados de bitacora, que son la region
+// del workflow. El Estado queda FUERA de la comparacion a proposito: lo escribe quien implementa,
+// y una tarea que paso a hecho no es un cambio de plan. Aritmetica, cero tokens.
+const samePlan = (a, b) =>
+  a.id === b.id &&
+  a.title === b.title &&
+  (a.covers || []).join(',') === (b.covers || []).join(',') &&
+  (a.objective || '') === (b.objective || '') &&
+  (a.firstTest || '') === (b.firstTest || '')
+
+const planUnchanged =
+  scout.tasksExist &&
+  scout.tasks.length === plan.length &&
+  scout.tasks.every((t, i) => samePlan(t, plan[i]))
+
+if (planUnchanged) {
+  log('El plan final es identico al que ya estaba: se preserva el encabezado de Estado.')
+}
+
 const written = await agentP(
   `Carpeta del spec: ${specDir}.
 
@@ -584,8 +619,24 @@ skill specify):
 No los pongas en la tabla ni los mezcles dentro de otro campo: la próxima corrida los lee de esas
 dos líneas exactas para poder devolvértelos, y lo que quede en cualquier otro lado se pierde.
 
-Acordate de preservar textualmente todo Registro de bitácora que ya tenga contenido real, y de
-dejar el encabezado en "pendiente de aprobación".`,
+En el encabezado, después de la línea de Estado, escribí:
+
+  > Ids emitidos: hasta T${maxId}
+
+Es la memoria de qué ids ya se repartieron, incluidos los de tareas que después desaparecieron del
+plan. Sin esa línea, una corrida futura calcula el próximo id libre mirando solo las tareas vivas y
+puede reutilizar uno ya usado, que es exactamente lo que la regla de numeración prohíbe: ese id
+puede estar citado en un commit o en una bitácora.
+
+${planUnchanged
+  ? `ENCABEZADO DE ESTADO: el plan final es idéntico al que ya estaba en el archivo — mismos ids, mismo
+orden, mismos títulos, mismo Cubre y mismos encabezados de bitácora. **Preservá la línea de Estado
+tal como está**, incluido un "aprobado" con su fecha. Esta corrida verificó que el plan sigue en
+pie; no lo cambió, así que no hay nada que volver a aprobar.`
+  : `ENCABEZADO DE ESTADO: el plan cambió respecto del que estaba en el archivo, así que dejá el
+encabezado en "pendiente de aprobación". Lo aprueba una persona, no vos.`}
+
+Acordate de preservar textualmente todo Registro de bitácora que ya tenga contenido real.`,
   { agentType: 'task-writer', model: 'opus', label: 'tasks.md' },
 )
 agentsSpent++
