@@ -857,6 +857,12 @@ verificable.
 **Se agrava con [[L12]]**, pero es distinta: L12 dice que `dod-checker` confía en que un test que
 pasa prueba lo que dice probar. Esta dice que nadie puede saber **cuándo** se escribió ese test.
 
+**La evidencia existe, pero es efímera.** El transcript de T5 muestra el ciclo completo y explícito:
+el test en rojo con `expected 0.30000000000000004 to be 0.3`, el fix, y el verde. O sea que quien
+implementa **sí produce** la evidencia — solo que queda en un log de chat que nadie va a poder
+consultar dentro de un mes, en vez de en el repo. No hay que generar nada nuevo: hay que persistir
+lo que ya ocurre.
+
 **Qué habría que hacer.** Exigir **un commit por tarea**, con el id en el mensaje. Con eso:
 
 - `git log` pasa a ser el registro independiente del escalonamiento, y no lo escribe quien implementa
@@ -878,16 +884,24 @@ en el método lo pedía. Es exactamente el tipo de supuesto tácito que la reuti
 ## L30 · La fase de implementación no tiene instrucción de cierre · `abierto`
 
 **Qué pasó.** En el demo (2026-09-06) la persona preguntó si `dod-checker` no debería dispararse solo
-al terminar de implementar. Revisando las cuatro tareas hechas, el comportamiento fue **inconsistente**:
+al terminar de implementar. La conducta observada:
 
 | Tarea | Qué hizo al terminar de implementar |
 |---|---|
 | T1 | Preguntó «¿Verificamos ahora, o seguimos con T2?» |
-| T2 | Verificó por su cuenta |
-| T3 | Verificó por su cuenta |
-| T5 | Paró sin verificar — quedó en `en curso` |
+| T2, T3, T4, T5 | Encadenó la verificación por su cuenta |
 
-Tres conductas distintas en cuatro tareas, sin que ninguna contradiga nada escrito.
+**Corrección de una lectura errónea.** Esta entrada se registró primero afirmando que T5 había parado
+sin verificar, y era falso: se leyó el repo a mitad de la corrida —el `Registro` ya escrito,
+`dod-checker` todavía en vuelo— y se tomó un estado en tránsito por una conducta. La verificación
+llegó 25 segundos después. Queda anotado porque el error tiene una moraleja de método: **leer un
+proyecto mientras otra sesión trabaja da instantáneas, no conclusiones**, y con el harness bajo
+observación eso puede fabricar hallazgos que no existen.
+
+**Lo que queda en pie, que es distinto de lo que se creyó.** La conducta es **consistente y correcta**:
+encadena. El problema no es que varíe, es que **funciona por buen criterio del modelo y no porque
+esté escrito en ningún lado**. Es la misma familia que [[L8]] — conducta, no mecanismo — y T1 muestra
+que puede variar cuando el contexto empuja para otro lado.
 
 **Por qué el hueco existe.** Los pasos 1, 2, 3, 4 y 7 los produce un skill, y cada `SKILL.md` termina
 con su instrucción de cierre: nombrá el paso siguiente y pará. **El paso 5 dice «TDD, a mano»: no
