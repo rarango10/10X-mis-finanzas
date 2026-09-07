@@ -834,6 +834,47 @@ incluye la aprobación como último acto antes de pasar a la siguiente.
 
 ---
 
+## L29 · La evidencia de que hubo TDD es prosa autorreportada · `abierto`
+
+**Qué pasó.** T2 a T5 del demo (2026-09-06) construyeron `calc.ts` en cuatro incrementos reales, cada
+uno con su alcance — verificado leyendo los Registros. Pero al intentar **comprobarlo de forma
+independiente** apareció el hueco: el proyecto no es un repo git, y `dod-checker` solo ve el estado
+final. La única evidencia de que el escalonamiento ocurrió es lo que quien implementó escribió que
+hizo.
+
+**Cómo se descubrió.** Al leer `calc.ts` con el regex final `^-?\d+(\.\d+)?$` mientras el Registro de
+T3 decía `^\d+$`, hubo una sospecha razonable de que el Registro mintiera. Se resolvió, pero
+**solo porque los Registros narraban la progresión en prosa**. Sin esa prosa —o con una prosa
+falsa— no había nada que consultar.
+
+**Por qué importa.** Todo el harness se apoya en el TDD: `CLAUDE.md` lo pone como regla, cada tarea
+declara su «primer test (rojo)», y el escalonamiento del plan solo tiene sentido si se respeta. Pero
+**no hay ningún artefacto que registre el orden**. Un implementador que escriba la solución completa
+y después los tests produce exactamente el mismo estado final, los mismos veredictos `cumple`, y un
+Registro que puede decir lo que quiera. La regla más central del método es la única sin evidencia
+verificable.
+
+**Se agrava con [[L12]]**, pero es distinta: L12 dice que `dod-checker` confía en que un test que
+pasa prueba lo que dice probar. Esta dice que nadie puede saber **cuándo** se escribió ese test.
+
+**Qué habría que hacer.** Exigir **un commit por tarea**, con el id en el mensaje. Con eso:
+
+- `git log` pasa a ser el registro independiente del escalonamiento, y no lo escribe quien implementa
+  sino la herramienta.
+- `dod-checker` puede mirar el diff de esa tarea en vez del estado final, y ver si el archivo de test
+  cambió junto con el código o mucho después.
+- El repaso posterior deja de depender de la prosa: se compara lo que el Registro dice con lo que el
+  diff muestra.
+
+Cuesta una línea de regla en `CLAUDE.md` y un paso en el ciclo por tarea, y convierte la afirmación
+más importante del método —«acá se hace TDD»— de declaración en dato.
+
+**Nota de alcance.** El repo de finanzas sí tiene commits por etapa, así que el hueco no se había
+notado. Apareció recién al usar el harness en un proyecto nuevo, donde nadie corrió `git init` y nada
+en el método lo pedía. Es exactamente el tipo de supuesto tácito que la reutilización destapa.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
