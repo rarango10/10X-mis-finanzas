@@ -95,7 +95,7 @@ se lanza, un agente que se spawnea), no a lo que se **precarga** en el contexto.
 
 ---
 
-## L3 · `claude plugin details` miente por omisión · `en observación`
+## L3 · `claude plugin details` miente por omisión · `resuelto` — documentado
 
 **Qué pasó.** El inventario reporta 4 skills y 7 agentes, pero **no cuenta el `SKILL.md` raíz del
 plugin ni los workflows**. La sesión real cargó además el router `harness-spike` y el workflow
@@ -131,7 +131,7 @@ interno y puede cambiar entre versiones.
 
 ---
 
-## L5 · Para workflows no hay shadowing · `en observación`
+## L5 · Para workflows no hay shadowing · `resuelto` — documentado
 
 **Qué pasó.** Consecuencia de L4: como los nombres difieren (`tasks-fanout` vs
 `mi-harness:tasks-fanout`), una copia local del workflow y la de un plugin **coexisten**. Para
@@ -1505,6 +1505,67 @@ es rehacer el demo desde una carpeta vacía. Con la diferencia de que **este lot
 valor ya se midió**: el `vitest.config.ts` con la exclusión estaba escrito en L1 desde antes de que
 el bug ocurriera, el demo no lo tuvo porque el skill que debía sembrarlo no existía, y el bug apareció
 exactamente donde la lección decía.
+
+## Lote 7 aplicado — 2026-09-07
+
+L25, L5 y L3 documentadas en el `README.md`, y L7 corregida ahí donde decía lo contrario de lo que
+había pasado. Conocimiento que no cambia una línea de código y cuesta horas si falta.
+
+**L25 fue a «Antes de empezar», no a una sección de troubleshooting.** Es una precondición, no un
+síntoma: si el proyecto vive en una carpeta sincronizada, el harness no funciona y el diagnóstico se
+va a ir a cualquier lado. Van los dos números —97.170 ms contra 34 ms de `prepare`, 225 s contra
+734 ms de corrida— porque una tabla convence donde una advertencia no, y **va también la moraleja**,
+que vale más que el caso: cuatro sospechosos equivocados antes de la causa, y una sola pregunta que
+lo destrabó — *¿el mismo tipo de comando funciona en otro proyecto de la misma máquina?*
+
+**L5 quedó pegada al paso donde muerde, con el porqué y no solo el qué.** El README ya decía «borrá
+las copias del repo» para skills y agentes; lo que faltaba es que **para workflows es peor**. Para
+skills y agentes hay shadowing y una gana; los workflows se registran con nombres distintos
+(`tasks-fanout` vs `mi-harness:tasks-fanout`) y **quedan los dos vivos**. Se puede correr la copia
+vieja creyendo que se usa la del plugin, arreglar el plugin, y no ver ningún cambio ni ninguna señal
+de por qué.
+
+**L3 quedó como advertencia sobre una herramienta, no sobre el harness.** `claude plugin details` no
+cuenta el `SKILL.md` de la raíz ni los workflows, y es el comando natural para medir qué trae un
+plugin. Se documentó con el daño concreto que hizo —dimos por probable que los plugins no soportaban
+workflows, y era falso— porque el número solo no enseña a desconfiar.
+
+**L7 estaba al revés en el README.** Decía «el ciclo e2e nunca corrió entero», y para cuando se
+escribió este lote ya había corrido: tres casos, tres specs, tres verdes. Ahora dice lo que pasó **y
+lo que sigue sin probarse**, que es lo que importa: el **ruteo** y el loop de reintento del lado del
+test. Corregir una limitación superada es tan importante como anotarla — un README que subestima lo
+que el método hace se lee como falta de confianza, y uno que lo sobrestima es peor.
+
+### El README estaba desactualizado en más lugares de los que este lote venía a tocar
+
+Los lotes 5, 5b y 6 agregaron tres skills y dos pasos, y el README seguía describiendo el harness de
+antes. Se corrigió todo lo que había quedado mintiendo:
+
+- «cuatro skills» → siete. «El ciclo, en siete pasos» → nueve, con el paso 0 y el 8 en la tabla.
+- La fila 5 decía **«TDD, a mano»**, que es exactamente el hueco que el Lote 5 cerró.
+- El diálogo de ejemplo mostraba `verificá T1` como un pedido humano. Ahora muestra que **se
+  encadena y no se pregunta**, que es la conducta que L30 vino a escribir.
+- «Lo único que hay que adaptar: `CLAUDE.md`» ahora dice que **no se escribe a mano**: tiene
+  productor desde el Lote 6.
+- «El punto que hay que verificar primero» daba el workflow-en-plugin por incógnita. Ya está
+  verificado, así que pasó a explicar lo que **sí** sorprende: que el namespacing renombra todo, y
+  que el prefijo se descubre leyéndolo del error en vez de hardcodearlo.
+- En «Estado y límites», la entrada de L10 —re-planificar desaprueba un plan intacto— estaba
+  resuelta desde el Lote 1 y seguía figurando como límite. Se reemplazó por el límite que sí queda
+  abierto y es más importante: **no hay evidencia independiente del orden del TDD** ([[L29]]).
+
+**La moraleja, que aplica a cualquier repo con documentación de su propio método:** los archivos que
+describen el sistema envejecen en silencio y sin emitir señal, igual que el chequeo de deriva de
+[[L35]]. Nada falla cuando un README miente. Conviene tratarlo como parte del cambio y no como una
+tarea aparte — que es justo lo que este lote terminó siendo.
+
+### La corrección al plan
+
+El plan decía que romper algo a propósito para ejercitar el ruteo iba «antes de todo esto». Se
+invirtió, con las dos razones escritas en el propio plan: correrlo antes lo mediría sobre el harness
+**viejo**, que va a dejar de existir; y **rehacer el demo termina con todo en verde**, que es el
+único estado desde el cual no se puede ejercitar el camino del fallo. Plegar la prueba de ruteo
+adentro de la corrida final da las dos cosas de una.
 
 ---
 

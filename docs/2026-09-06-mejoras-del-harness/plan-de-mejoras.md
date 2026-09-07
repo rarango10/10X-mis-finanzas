@@ -1,6 +1,9 @@
 # Plan de mejoras del harness
 
-> Backlog de origen: [`lecciones.md`](../../lecciones.md) · Estado: pendiente de implementar
+> Backlog de origen: [`lecciones.md`](../../lecciones.md)
+> Estado: **lotes 1 a 7 aplicados** (2026-09-07). Queda la corrida final de verificación, abajo.
+> Lo aplicado de cada lote —y lo que apareció al aplicarlo, que no siempre estaba acá— se registra
+> en las secciones «Lote N aplicado» de `lecciones.md`.
 
 ## Por qué existe este documento
 
@@ -420,9 +423,18 @@ Cada lote tiene su chequeo barato, pero **la prueba real es volver a correr el d
   correspondientes **no reaparecen**. Mismo input, mismo modelo, distinto harness: es la comparación
   más limpia posible, y el caso de prueba ya está construido.
 
-**Pendiente aparte, y antes de todo esto:** romper algo a propósito en el demo actual —cambiar un
-label, o que «Limpiar» no vacíe el resultado— y correr `verifiquemos e2e` para ejercitar el **ruteo**
-(`causa: test` / `codigo` / `spec`), que es la única parte del ciclo con diseño y cero pruebas.
+**Corrección al aplicar el Lote 7.** Esta línea decía «pendiente aparte, y **antes** de todo esto:
+romper algo a propósito en el demo actual y correr `verifiquemos e2e` para ejercitar el ruteo». Se
+decidió lo contrario, y es mejor: **la prueba de ruteo se pliega dentro de la corrida final de
+verificación**, no antes de los lotes.
+
+Dos razones. Correrla antes la haría sobre el harness **viejo**, así que mediría el ruteo de una
+versión que va a dejar de existir — y habría que repetirla igual después. Y romper algo a propósito
+es exactamente el insumo que la corrida final necesita: rehacer el demo desde una carpeta vacía
+termina con todo en verde, que es el único estado desde el cual **no** se puede ejercitar el camino
+del fallo. Plegarla adentro da las dos cosas de una: el ciclo completo con el harness nuevo, y el
+ruteo (`causa: test` / `codigo` / `spec`) probado sobre él, que es la única parte del ciclo con
+diseño y cero pruebas.
 
 ## Nota sobre `lecciones.md`
 
