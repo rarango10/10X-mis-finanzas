@@ -548,7 +548,7 @@ del ciclo: al pedir el sí se dice qué habilita, y al recibirlo se asienta.
 
 ---
 
-## L22 · Nadie define qué se le puede contar a `dod-checker` al invocarlo · `abierto`
+## L22 · Nadie define qué se le puede contar a `dod-checker` al invocarlo · `resuelto`
 
 **Qué pasó.** Al verificar T1 en el demo (2026-09-06), la sesión que acababa de implementar la tarea
 invocó al verificador con este prompt: *«Ya se corrió manualmente `npm run check`, `npm run lint`,
@@ -605,7 +605,7 @@ qué lo comparó**.
 
 ---
 
-## L23 · `dod-checker` no tiene regla de corte cuando la verificación falla · `abierto`
+## L23 · `dod-checker` no tiene regla de corte cuando la verificación falla · `resuelto`
 
 **Qué pasó.** Verificando T1 en el demo (2026-09-06), `npm run check` falló porque el pool de
 vitest se colgaba (timeout de 60 s). El agente encadenó **diez comandos** intentando destrabarlo:
@@ -642,7 +642,7 @@ verificación normal, para producir un veredicto que la primera falla ya determi
 
 ---
 
-## L24 · `dod-checker` no tiene un paso que compare las dependencias contra `CLAUDE.md` · `abierto` (2 de 2)
+## L24 · `dod-checker` no tiene un paso que compare las dependencias contra `CLAUDE.md` · `resuelto`
 
 **Qué pasó.** Verificando T1 (2026-09-06) no detectó `@testing-library/jest-dom` en
 `devDependencies`, que no figura en la lista de stack de `CLAUDE.md`. Reportó como único desvío el
@@ -1000,7 +1000,7 @@ la escala de veredictos.
 
 ---
 
-## L32 · Un agente no distingue su propia configuración de lo que le mandó el llamador · `abierto`
+## L32 · Un agente no distingue su propia configuración de lo que le mandó el llamador · `resuelto` — en `dod-checker`
 
 **Qué pasó.** En la corrida de `verify-e2e` (2026-09-06), `e2e-triager` reportó que su mensaje de
 invocación «traía además contenido del skill `specify`» que no le correspondía, y **dijo haberlo
@@ -1127,6 +1127,43 @@ emite ninguna señal.
 harness en la sesión. Los respaldos van fuera de ese directorio —`~/.claude/backups/`— porque todo lo
 que hay adentro se carga. Vale para el README del [[L5]]: es la misma familia de problema que las dos
 copias del workflow.
+
+---
+
+## Lote 2 aplicado — 2026-09-07
+
+L24, L22, L23 y L32 resueltas en `dod-checker.md`. L27 y L31 quedan **parcialmente** cubiertas: su
+mitad del verificador está escrita, y falta su mitad del origen (`specify`), que es el Lote 3.
+
+**Sección nueva «Qué te tiene que llegar, y qué no»** — el contrato de invocación, puesto arriba
+junto a las otras declaraciones de identidad. Cubre L22 (solo necesita id y ruta; ignora
+afirmaciones sobre resultados; el vocabulario de veredictos no lo negocia el llamador) y L32 (los
+skills del frontmatter **son propios y se usan**, no son contaminación del llamador).
+
+Que las dos cosas estén en la misma sección es deliberado: la regla de ignorar y la de usar lo
+propio se leen juntas o la primera se lleva puesta a la segunda, que es exactamente lo que pasó
+cuando `e2e-triager` descartó `specify`.
+
+**Paso 6, «Restá las dependencias»** — L24 deja de ser una mención en `## Límites` y pasa a ser un
+paso del procedimiento. La frase que lo cierra es la que faltaba: *que la bitácora ya la declare no
+la saca del veredicto*, porque leer la bitácora primero y buscar solo lo que confiesa es auditar el
+relato en vez del repo.
+
+**Sección nueva «La otra mitad de esa regla»** — el hallazgo tiene que llegar al veredicto. Está
+puesta inmediatamente después de «La regla que más importa» a propósito: una protege del falso
+negativo, la otra del falso positivo, y juntas dicen que el veredicto es el único canal que mueve
+el `Estado`.
+
+**Sección nueva «Cuando la verificación no corre»** — L23. Presupuesto explícito (un reintento, tres
+comandos de diagnóstico), prohibición de probar workarounds del comando declarado, y la pregunta que
+separa «entorno roto» de «toolchain roto» en una sola corrida.
+
+### Lo que este lote todavía no puede probar
+
+Los cuatro cambios son prosa, y su efecto solo se ve **usándolos**. `claude plugin validate` pasa y
+el inventario está completo, pero eso comprueba el empaquetado, no la conducta. La prueba real es la
+corrida final: rehacer el demo y ver si `dod-checker` detecta la dependencia fuera de contrato sin
+que nadie se la señale — falló dos de dos antes de este cambio.
 
 ---
 
