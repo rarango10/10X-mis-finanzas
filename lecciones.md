@@ -935,6 +935,50 @@ acumula la mayor cantidad de reglas no escritas.**
 
 ---
 
+## L31 · La regla «un criterio, un comportamiento» existe y nada la hace cumplir · `abierto`
+
+**Qué pasó.** R1.1 del demo (2026-09-06) quedó escrito así: «THE SYSTEM SHALL mostrar dos campos
+editables para ingresar los números a sumar **y** un tercer campo de solo lectura para el
+resultado». Son dos comportamientos unidos por una `y`. El `requirements-template.md` de `specify`
+dice, en su línea 57: «Un criterio, un comportamiento. Si tiene un "y también", probablemente son
+dos criterios».
+
+La regla estaba escrita, en el archivo que se estaba usando, y aun así el criterio salió compuesto.
+No lo detectó `specify` al escribirlo, ni la persona al aprobarlo, ni `plan-reducer` al planificar.
+
+**Dónde se pagó el costo: dos pasos después.** El test de T6 comprueba que las tres casillas
+renderizan vacías, pero **no** que la tercera sea de solo lectura. O sea: media R1.1 tiene evidencia
+de test y media no. El contrato de `dod-checker` define eso como `sin-evidencia` —«el código puede
+estar bien igual, pero nadie lo está protegiendo»— y su regla de composición dice que un criterio en
+`sin-evidencia` baja la tarea a `cumple-parcial`.
+
+Devolvió `cumple` y puso el hueco en una nota. **Identificó el problema y no aplicó su propia regla**,
+igual que en [[L27]]: cuando el criterio no es atómico, su vocabulario —un veredicto por criterio— no
+tiene con qué expresar «media». Ante la falta de valor, redondea hacia arriba.
+
+**La raíz compartida con [[L27]].** Los dos casos son la misma cosa: **el harness trata los criterios
+como átomos y no lo son**. L27 los parte entre tareas (`Cubre` de T2 y de T7); esta los parte en
+cláusulas (una testeada, otra no). En los dos, la granularidad del veredicto no coincide con la del
+criterio, y el agente inventa o redondea para poder contestar.
+
+**Qué habría que hacer.** Atacarlo en el origen, que es más barato que darle vocabulario al
+verificador:
+
+- **En `specify`:** que la regla de atomicidad deje de ser un recordatorio del template y pase a ser
+  un paso de la fase 1 — releer cada criterio buscando conjunciones antes de presentarlo.
+- **En `check_specs.py`:** ya escanea los criterios buscando filtraciones de implementación con una
+  lista de patrones. Agregar un patrón que marque criterios con « y » o « and » entre dos verbos es
+  el mismo mecanismo, y convierte un recordatorio en una detección. Heurístico, con falsos positivos
+  aceptables — igual que la lista de librerías.
+- **En `dod-checker`:** si un criterio tiene varias cláusulas y solo algunas tienen test, es
+  `sin-evidencia`, no `cumple` con nota. La nota no cambia el estado del `tasks.md`; el veredicto sí.
+
+**Nota.** Es la tercera vez que `dod-checker` detecta correctamente un problema y no lo deja llegar
+al veredicto ([[L24]], [[L27]], esta). El juicio está; lo que falla es la traducción del hallazgo a
+la escala de veredictos.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
