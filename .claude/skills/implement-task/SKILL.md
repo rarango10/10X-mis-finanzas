@@ -186,4 +186,9 @@ Decilo y parate. Lo que sigue es el **paso 7**, la verificación end-to-end del 
 `dod-checker` contestó once veces «¿esta tarea cumple sus criterios?», y ninguna de esas respuestas
 dice si la feature entera camina. Son verificaciones distintas y ninguna reemplaza a la otra.
 
-No lo arranques vos: nombralo.
+No lo arranques vos: nombralo. Y si la feature no tiene superficie navegable —no hay e2e que
+correr—, lo que sigue es el **paso 8**, el skill `close-feature`.
+
+Los commits por tarea **no cierran la feature**. Cada uno guarda una tarea; el cierre es otra cosa,
+y es la corrida de higiene sobre el estado final: tu `cumple` de la tarea 3 se tomó sobre un repo que
+para entonces ya cambió siete veces.

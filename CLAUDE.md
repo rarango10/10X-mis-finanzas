@@ -9,11 +9,34 @@ Proyecto de ejemplo para una app de **finanzas personales** que ayuda a crear lo
 
 ## Comandos de verificación
 
+Son **dos ranuras con propósitos distintos**. El nombre de esta sección no cambia porque cuatro
+piezas del harness la buscan por él, pero adentro están separadas.
+
+**Corrección** — la del paso 5 al cerrar una tarea y la que corre `dod-checker` en el paso 6.
+Contesta «¿el código cumple los criterios de aceptación?».
+
 ```bash
 npm run typecheck   # tsc --noEmit
 npm test            # vitest run
-npm run test:e2e    # playwright test (solo el ciclo verify-e2e; hoy no hay app que navegar)
 ```
+
+**Higiene** — la del paso 8, una vez, sobre el estado final del repo. Contesta otra cosa: «¿el repo
+entero está sano con todo esto adentro?».
+
+```bash
+npm run typecheck
+npm test
+npm run test:e2e    # solo si la feature tuvo ciclo e2e y hay app que navegar.
+                    # Hoy no la hay, y @playwright/test está declarado pero sin instalar:
+                    # esta pata no aplica todavía, y su fallo no es un hallazgo.
+```
+
+**Por qué separadas, en las dos direcciones.** Con lint, build o e2e adentro del comando de
+corrección, una queja de formato o un browser que falta hace fallar la verificación de una tarea por
+una razón que no tiene nada que ver con su criterio — y ensucia el veredicto, que es el registro
+durable de qué está hecho. Y al revés: si la única corrida es la de corrección, tarea por tarea,
+**nadie comprueba nunca el conjunto**, que es como un `hecho` puede volverse mentira sin que la
+tarea cambie una línea.
 
 ## Workflow de trabajo
 
@@ -28,13 +51,16 @@ npm run test:e2e    # playwright test (solo el ciclo verify-e2e; hoy no hay app 
 | 7 | `e2e-tests-plan.md` | skill `verify-e2e`, fase 2 | «verifiquemos e2e», «probemos de punta a punta» |
 | 8 | `end2end/<feature>/*.spec.ts` | subagente `e2e-test-writer` | (lo invoca `verify-e2e`, no se pide suelto) |
 | 9 | `e2e-test-report.md` | subagente `e2e-triager` | (lo invoca `verify-e2e`, no se pide suelto) |
+| 10 | corrida de higiene + commit de cierre | skill `close-feature` | «cerremos la feature», «commiteemos» |
 
 Todo en `docs/AAAA-MM-DD-<feature>/`, salvo los specs de Playwright, que van en `end2end/` en la
 raíz porque son código y los tiene que ver `playwright.config.ts`.
 
-Los pasos 6 y 7 verifican cosas distintas y ninguno reemplaza al otro: `dod-checker` pregunta si
+Los pasos 6, 7 y 8 verifican cosas distintas y ninguno reemplaza a otro: `dod-checker` pregunta si
 *una tarea* cumple los criterios que dice cubrir; `verify-e2e` pregunta si *la feature entera*
-funciona. Veintinueve tareas en `hecho` no dicen nada sobre si el flujo completo camina.
+funciona; `close-feature` pregunta si *todos los veredictos siguen siendo ciertos juntos*, sobre el
+estado final del repo. Veintinueve tareas en `hecho` no dicen nada sobre si el flujo completo camina,
+y ninguna de las dos primeras dice nada sobre si el conjunto se sostiene cuando se juntan.
 
 Cada documento tiene **un solo productor**: si una frase te deja dudando entre dos skills, gana
 esta tabla. Cada paso espera aprobación humana antes del siguiente, y ningún skill arranca al que
@@ -77,9 +103,15 @@ le sigue — solo lo nombra.
   commits con el mismo id, porque el id es lo que agrupa. Ojo con lo que esto sí prueba: que la
   tarea fue una unidad de trabajo, no que el test se escribió antes que el código. Para eso harían
   falta commits en rojo, y eso contradice que cada tarea deje el repo en verde.
+- **Un veredicto se toma sobre un estado.** El `cumple` de `dod-checker` es cierto para el repo tal
+  como estaba cuando lo tomó, y puede volverse falso **sin que la tarea cambie una línea** — pasó:
+  una tarea verificada con `end2end/` vacía quedó en rojo cuando el paso 7 pobló esa carpeta. Por eso
+  el paso 8 corre la higiene completa sobre el estado final, y por eso un rojo ahí **reabre la tarea
+  afectada**: vuelve a `en curso` y regresa a `hecho` solo con un `cumple` nuevo, tomado ya en ese
+  estado. Verificar tarea por tarea no garantiza el conjunto.
 - **El ciclo e2e no repara código.** `e2e-triager` diagnostica un fallo y dice a dónde va, nada
   más: si la causa es el test, vuelve al plan de tests; si es el código, la tarea afectada baja a
-  `en curso` y se arregla con el TDD de siempre, con `dod-checker` como única puerta de vuelta a
+  `en curso` y se arregla con el TDD de siempre (`implement-task`), con `dod-checker` como única puerta de vuelta a
   `hecho`. No hay ni va a haber un agente que edite `src/` para poner un e2e en verde: sería un
   segundo escritor del código, saltearía el TDD, y puede cerrar el síntoma dejando la causa.
 - **Las compuertas del ciclo e2e se configuran al invocarlo, no en un archivo.** Su default —las

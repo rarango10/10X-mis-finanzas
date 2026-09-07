@@ -7,7 +7,7 @@ description: "Verifica una feature ya implementada de punta a punta, en dos fase
 
 `dod-checker` responde «¿T7 cumple R3.2?». Este skill responde otra pregunta: **¿la feature entera funciona?** Son verificaciones distintas y ninguna reemplaza a la otra — 29 tareas en `hecho`, cada una verificada contra sus criterios, siguen sin decir nada sobre si el flujo completo camina de principio a fin.
 
-El workflow del proyecto es: brainstorm → requirements + design → plan de tareas → implementación TDD → verificación por tarea (`dod-checker`) → **verificación end-to-end (este skill)** → commit. Este skill es el paso 7 y se detiene ahí.
+El workflow del proyecto es: brainstorm → requirements + design → plan de tareas → implementación TDD (`implement-task`) → verificación por tarea (`dod-checker`) → **verificación end-to-end (este skill)** → cierre (`close-feature`). Este skill es el paso 7 y se detiene ahí.
 
 Producís vos un solo documento: `e2e-tests-plan.md`. Los otros dos productos del ciclo tienen cada uno su propio dueño, y no sos vos: los scripts los escribe el subagente `e2e-test-writer` y el reporte lo escribe el subagente `e2e-triager`. Es la misma regla de un solo productor por documento que rige el resto del proyecto.
 
@@ -78,12 +78,16 @@ No corras vos los tests antes de invocarlo: la corrida es suya, y una segunda co
 El campo `ruteo` del veredicto tiene tres destinos, y cada uno es un camino distinto:
 
 - **`aFase2`** — el test estaba mal escrito. Volvé a la fase 2, corregí **solo esos casos** del plan, y rehacé el ciclo desde ahí. **Máximo dos rondas.** A la tercera, pará y subilo a la persona: un caso que no se estabiliza en dos intentos no es un test mal escrito, es una ambigüedad del spec disfrazada.
-- **`aTDD`** — el fallo es del código. La tarea nombrada vuelve a `en curso` en `tasks.md` y el fallo e2e queda asentado en su `Registro` como el punto de partida. Eso **lo escribís vos**, no el triager: `Estado` y `Registro` son la región de quien implementa, y en este ciclo quien implementa es esta sesión. A partir de ahí el arreglo es el TDD de siempre, y la tarea vuelve a `hecho` solo cuando `dod-checker` devuelva `cumple`. El ciclo e2e termina acá; no arranques la reparación en el mismo mensaje.
+- **`aTDD`** — el fallo es del código. La tarea nombrada vuelve a `en curso` en `tasks.md` y el fallo e2e queda asentado en su `Registro` como el punto de partida. Eso **lo escribís vos**, no el triager: `Estado` y `Registro` son la región de quien implementa, y en este ciclo quien implementa es esta sesión. A partir de ahí el arreglo es el TDD de siempre, con el skill `implement-task`, y la tarea vuelve a `hecho` solo cuando `dod-checker` devuelva `cumple`. El ciclo e2e termina acá; no arranques la reparación en el mismo mensaje.
 - **`aSpecify`** — el test y el código hacen lo que dicen, y lo que está mal es el criterio. Nombrá al skill `specify` y pará. No corrijas `requirements.md` vos.
 
 Un caso en `indeterminado` no se rutea a ningún lado: se cuenta y se sube. Adivinar el destino de un fallo ambiguo cuesta más que preguntarlo.
 
-Si todo dio verde, decilo y terminá. El reporte queda como el registro durable de esa corrida.
+Si todo dio verde, decilo y nombrá el **paso 8**, el skill `close-feature`: corre la higiene
+completa sobre el estado final y hace el commit de cierre. No lo arranques vos. Y decilo al cerrar,
+no después, porque este ciclo es justo el que puede invalidar un veredicto viejo — poblar `end2end/`
+ya dejó una vez en rojo el comando que una tarea declaraba en verde, sin que esa tarea cambiara nada.
+El reporte queda como el registro durable de esta corrida.
 
 ## Por qué no hay un agente que repare el código
 

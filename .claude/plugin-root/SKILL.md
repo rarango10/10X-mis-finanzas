@@ -5,7 +5,7 @@ description: "Explica el ciclo de desarrollo asistido de este harness y enruta a
 
 # Harness — el ciclo y su ruteo
 
-Este plugin trae un ciclo de desarrollo de siete pasos. Cada paso produce un artefacto, se
+Este plugin trae un ciclo de desarrollo de ocho pasos. Cada paso produce un artefacto, se
 detiene y espera aprobación humana. **Ningún paso arranca al que le sigue: lo nombra.**
 
 | # | Producto | Lo produce | Se pide diciendo |
@@ -17,6 +17,7 @@ detiene y espera aprobación humana. **Ningún paso arranca al que le sigue: lo 
 | 5 | código + tests | skill `implement-task` (TDD) | «implementemos T3», «seguimos con la que sigue» |
 | 6 | veredicto por tarea (en el chat) | subagente `dod-checker` | «verificá T3» |
 | 7 | `e2e-tests-plan.md` + `e2e-test-report.md` | skill `verify-e2e` | «verifiquemos e2e» |
+| 8 | corrida de higiene + commit de cierre | skill `close-feature` | «cerremos la feature», «commiteemos» |
 
 Todo el papeleo de una feature vive en `docs/AAAA-MM-DD-<feature>/`.
 
@@ -30,7 +31,11 @@ Los skills y los subagentes no saben qué stack usás. Leen el `CLAUDE.md` del p
 que declarar al menos:
 
 - **Comandos de verificación** — de ahí sacan qué correr `spec-scout`, `dod-checker`,
-  `task-reviewer` y `e2e-triager`. Sin esa sección no saben cómo comprobar nada.
+  `task-reviewer` y `e2e-triager`. Sin esa sección no saben cómo comprobar nada. Conviene que
+  distinga dos ranuras: el comando de **corrección** (typecheck + tests), que es el de los pasos 5
+  y 6, y el de **higiene** (lint, formato, build, e2e), que es el del paso 8. Con lint adentro del
+  primero, una queja de formato hace fallar la verificación de una tarea por una razón ajena a su
+  criterio.
 - **Stack y reglas** — el contrato del proyecto, que `specify` respeta al diseñar.
 
 Si el proyecto no tiene `CLAUDE.md`, decilo antes de arrancar: no lo inventes ni asumas `npm`.
@@ -52,9 +57,12 @@ Si el proyecto no tiene `CLAUDE.md`, decilo antes de arrancar: no lo inventes ni
    renuncia solo con el vocabulario de `implement-task` (`--modo corrido`), nunca por inferencia;
    la verificación de cada tarea y el corte ante un veredicto menor no se renuncian nunca.
 
-4. **`hecho` significa verificado.** Una tarea pasa a `hecho` solo cuando `dod-checker` devolvió
-   `cumple` y ese veredicto quedó asentado en su `Registro`. Cualquier resultado menor la deja
-   en `en curso`. La columna `Estado` es el registro durable de qué está terminado de verdad.
+4. **`hecho` significa verificado, y sobre un estado.** Una tarea pasa a `hecho` solo cuando
+   `dod-checker` devolvió `cumple` y ese veredicto quedó asentado en su `Registro`; cualquier
+   resultado menor la deja en `en curso`. Y ese `cumple` vale para el repo tal como estaba al
+   tomarlo: puede volverse falso sin que la tarea cambie, así que el paso 8 lo vuelve a comprobar
+   sobre el estado final y un rojo ahí reabre la tarea. La columna `Estado` es el registro durable
+   de qué está terminado de verdad.
 
 ## Requisito de entorno
 

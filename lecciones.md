@@ -264,7 +264,7 @@ implementar.
 
 ---
 
-## L13 · El comando de verificación puede conflacionar corrección con estilo · `abierto`
+## L13 · El comando de verificación puede conflacionar corrección con estilo · `resuelto parcialmente`
 
 **Qué pasó.** El `CLAUDE.md` que el harness ayudó a escribir para `my-harness-demo` (2026-09-06)
 declaró que `dod-checker` corre `npm run verify`, una cadena de typecheck → lint → test → build.
@@ -280,6 +280,12 @@ cosas ensucian el veredicto, que es el registro durable de qué está hecho.
 que es el del paso 6, y el de **higiene** (lint, formato, build), que es previo al commit. Hoy la
 sección «Comandos de verificación» invita a poner todo junto porque no dice que sean cosas
 separadas.
+
+**Resuelta a medias en el Lote 5b, y conviene saber cuál mitad.** El `CLAUDE.md` **de este repo**
+tenía el mismo defecto que el del demo —tres comandos bajo un rótulo único— y se separó en dos
+ranuras rotuladas, porque sin eso `implement-task` y `close-feature` no tenían contra qué bindear.
+Lo que sigue abierto es el origen: **la plantilla con las dos ranuras**, que es lo que hace el
+defecto imposible en un proyecto nuevo en vez de arreglarlo en uno viejo. Eso es el Lote 6.
 
 ---
 
@@ -1068,7 +1074,7 @@ los agentes que narran lo que les llega producen hallazgos que de otro modo ser�
 
 ---
 
-## L33 · Un veredicto solo vale para el estado en que se tomó · `abierto`
+## L33 · Un veredicto solo vale para el estado en que se tomó · `resuelto`
 
 **Qué pasó.** Al armar el commit del demo (2026-09-06), `npm run verify` estaba en rojo: Vitest
 levantaba los tres specs de Playwright, porque su `include` por defecto matchea
@@ -1381,6 +1387,68 @@ habría copiado también `skill-creator`, que vive en el repo pero no es del har
 excluye con una **lista de exclusión y no de inclusión**, a propósito: así un skill nuevo del harness
 entra solo. Con una lista de inclusión, `implement-task` no habría llegado al plugin y nadie se
 habría enterado — exactamente el modo de falla de L35, una vez más.
+
+## Lote 5b aplicado — 2026-09-07
+
+L33 resuelta. El paso 8 dejó de mencionarse en prosa y pasó a tener fila, skill y conducta:
+`.claude/skills/close-feature/SKILL.md`.
+
+**Por qué un skill y no una regla suelta.** Era la tentación obvia —es un paso corto— y es
+exactamente el error que el Lote 5 acababa de pagar: un paso con fila en la tabla y sin productor
+improvisa. Poner la conducta en `CLAUDE.md` y dejar la fila apuntando a «a mano» habría reproducido
+el hueco del paso 5 el mismo día que se cerró.
+
+**Lo que el skill dice, y el orden importa.** Primero la razón —**un veredicto se toma sobre un
+estado**— con el caso de T11 contado entero, incluida la parte incómoda: el `Objetivo` de la tarea
+*sabía* que `end2end/` se iba a poblar y no había ningún lugar donde usar esa información. El skill
+es ese lugar. Recién después el procedimiento, porque sin la razón el paso se lee como trámite y el
+trámite se saltea.
+
+La tabla de tres niveles quedó escrita ahí y vale por sí sola: paso 6 pregunta por *una tarea en un
+momento*; paso 7 por *la feature en un momento*; paso 8 por *todos los veredictos juntos, en el
+estado final*.
+
+**Los dos atajos prohibidos, que son el corazón del paso.** No acotar la corrida a los tests de la
+feature, y no saltearla porque cada tarea ya corrió lo suyo. El segundo tiene la forma de un
+razonamiento válido y no lo es: *que las partes hayan pasado por separado es justamente la
+afirmación que este paso viene a comprobar, así que no puede ser también su justificación para no
+comprobarla.*
+
+**Un rojo reabre, no repara.** Misma arquitectura que el ciclo e2e, y por la misma razón escrita.
+Con la regla para el caso que más se va a dar: si el rojo no es de ninguna tarea en particular
+—configuración, un runner que levanta lo que no le toca, que es literalmente el caso de T11—, la
+tarea afectada es **la que declaró que ese comando quedaba en verde**. Y el veredicto viejo se marca
+`Verificación previa (superada):`, no se borra: **un veredicto que envejeció no es un veredicto que
+estuvo mal**, y esa distinción es toda la lección.
+
+**El paso puede cerrar sin commit.** Si no quedó nada sin commitear —cada tarea ya tiene el suyo, por
+[[L29]]— el cierre legítimo es «la higiene dio verde y no había nada pendiente». El valor del paso es
+la corrida, no el commit. Escribirlo evita el commit vacío fabricado para tener uno.
+
+### Lo que apareció al aplicarlo
+
+**[[L13]] estaba abierta también en este repo, no solo en el demo.** `CLAUDE.md` listaba tres
+comandos bajo un único rótulo, sin decir cuál es de corrección y cuál de higiene — así que
+`implement-task` («corré el de corrección») y `close-feature` («corré el de higiene») no tenían
+contra qué bindear. Se separaron en dos ranuras rotuladas.
+
+**Pero el nombre de la sección no se tocó, y esa fue una decisión.** `spec-scout`, `dod-checker`,
+`tasks-fanout.js` y el router buscan literalmente «Comandos de verificación». Renombrarla a algo más
+preciso habría roto cuatro lectores **en silencio**: ninguno falla si no encuentra la sección, se
+las arreglan con lo que haya. Es la misma familia que [[L35]] — un acoplamiento por nombre, sin nada
+que lo verifique — y la salida barata fue conservar el rótulo y separar adentro. Queda anotado como
+deuda: el día que haya que renombrarla, son cuatro archivos y ningún chequeo avisa.
+
+**La pata e2e del comando de higiene se declaró condicional.** En este repo `@playwright/test` está
+en `devDependencies` pero no instalado, así que `npm run test:e2e` falla. Meterlo incondicionalmente
+en la ranura de higiene habría dejado el paso 8 **rojo por construcción**, y la primera vez que se
+usara habría reabierto una tarea por andamiaje ausente. El skill lo dice como regla general: si una
+pata del comando de higiene no aplica hoy, se declara en vez de dejarla correr, porque un rojo de
+andamiaje ausente no es un hallazgo.
+
+Vale notar que el defecto se encontró **corriendo el comando**, no leyéndolo. `CLAUDE.md` decía
+«playwright test» y la declaración de la dependencia estaba: los dos archivos que había que leer
+decían que funcionaba.
 
 ---
 
