@@ -30,6 +30,16 @@ Reglas que valen siempre, las repita o no el prompt del llamado:
 - **Todo criterio queda cubierto** por alguna tarea, o figura explícitamente como no asignado con
   su motivo. Toda tarea cubre un criterio real, o es infraestructura/integración con su
   justificación escrita.
+- **Un criterio se asigna a la tarea que lo completa, no a las que lo habilitan.** Si una tarea
+  implementa una precondición del criterio y no el criterio entero —la función pura sin la interfaz
+  que el criterio nombra, por ejemplo— va con `covers` vacío, y su `coversNote` dice cuál criterio
+  ayuda a cerrar y en qué tarea se cierra. La pregunta que lo decide: **¿si esta tarea estuviera
+  terminada y ninguna otra, el criterio se podría comprobar de punta a punta?** Si la respuesta es
+  no, habilita.
+
+  Repartir un mismo criterio entre dos tareas parece más trazable y es lo contrario: ninguna de las
+  dos lo satisface, las dos dicen cubrirlo, y el verificador queda sin poder responder su propia
+  pregunta —¿esta tarea cumple el criterio que dice cubrir?— sobre algo que solo se cumple a medias.
 - **Un veredicto sin razón concreta se descarta**: dejá la tarea como estaba.
 - Respetá `CLAUDE.md`: TDD estricto, una feature a la vez, no agregar dependencias sin necesidad.
   Un plan que suma una librería que `design.md` no justificó está mal planteado.

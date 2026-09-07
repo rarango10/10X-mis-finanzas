@@ -32,9 +32,14 @@ Separar el "qué" del "cómo" mantiene honesto al diseño: si arrancás por la s
 3. **Redactá los criterios en EARS**: prosa en español, palabras clave en inglés (`WHEN`, `IF`/`THEN`, `WHILE`, `WHERE`, `THE SYSTEM SHALL`). Funcionan como vocabulario formal, igual que las palabras clave de SQL. Los patrones, ejemplos y errores típicos están en `references/ears-patterns.md` — leelo si dudás de cuál corresponde o cómo formular algo que no encaja en el patrón simple.
 4. **Numerá todo**: requisitos `R1`, `R2`… y criterios `R1.1`, `R1.2`… El design y los tests van a referenciarlos, y esa trazabilidad es lo que después permite verificar que no quedó nada sin cubrir.
 5. **Acotá el alcance**: incluí solo lo que se acordó, y dejá explícito lo que queda afuera por ahora. Un requisito de más es una feature de más que alguien va a construir.
-6. **Presentá y esperá aprobación**: contá en el chat qué requisitos quedaron (los títulos alcanzan, no repitas el archivo entero), dónde está el archivo, y qué supuestos o preguntas abiertas anotaste. Después parate.
+6. **Releé cada criterio buscando conjunciones, antes de presentar.** Un criterio, un comportamiento: si dice «mostrar dos campos editables **y** un tercero de solo lectura», son dos criterios, no uno. Es una pasada corta y hay que hacerla explícitamente, porque el costo de saltearla no se paga acá sino dos pasos después: un criterio compuesto se cubre a medias —una cláusula con test y la otra sin— y el verificador se queda sin forma de decirlo, porque su vocabulario tiene un veredicto por criterio y no por cláusula. Terminás con un `cumple` sobre algo que solo está medio probado.
+7. **Presentá y esperá aprobación**: contá en el chat qué requisitos quedaron (los títulos alcanzan, no repitas el archivo entero), dónde está el archivo, y qué supuestos o preguntas abiertas anotaste. **Decí también qué habilita ese sí**: si lo aprueba, sigue la fase 2, que convierte estos criterios en `design.md`. Después parate.
+
+   Nombrar el paso siguiente **al pedir** la aprobación y no después no es un detalle de cortesía: quien aprueba tiene que saber hacia dónde está aprobando. Si el nombre del paso llega recién con el «listo, aprobado», la cadena queda descubrible solo en retrospectiva — te enterás de qué autorizaste después de haberlo autorizado.
 
 No pases a diseño hasta tener un sí. Si la respuesta trae cambios, ajustá el archivo y volvé a pedir aprobación.
+
+**Cuando llegue el sí, asentalo en el archivo en el acto**: el encabezado de `requirements.md` pasa a `> Estado: aprobado (AAAA-MM-DD)`. La aprobación ocurre en el chat y el chat se pierde; lo que queda es el encabezado, y es lo que van a leer `planning-tasks` para decidir si el spec está listo y el scout del workflow en la corrida siguiente. Un documento aprobado que figura como pendiente se trata como no aprobado.
 
 ## Fase 2 — Design
 
@@ -51,7 +56,7 @@ Después:
 2. **Referenciá los requisitos**: cada decisión de diseño existe para satisfacer algo. Enlazá secciones con los ids (`R1.2`) y, en la estrategia de testing, mapeá qué test cubre qué criterio.
 3. **Diseñá para lo que hay**: seguí los patrones del código existente y las reglas que declara `CLAUDE.md` — su stack, sus comandos de verificación, y las restricciones que se haya puesto el proyecto (por ejemplo, no agregar dependencias sin necesidad). Si una dependencia o una capa nueva parece necesaria, justificá por qué el requisito no se puede satisfacer sin ella.
 4. **Dejá registro de lo descartado**: qué alternativas consideraste y por qué no. Eso evita rediscutir lo mismo en tres semanas.
-5. **Presentá y esperá aprobación**, igual que en la fase 1.
+5. **Presentá y esperá aprobación**, igual que en la fase 1: al pedir el sí, decí también qué habilita —el plan de tareas, que arma `planning-tasks` lanzando un workflow con un agente por tarea— para que quien aprueba sepa qué está autorizando y a qué costo. Y cuando el sí llegue, **asentá `> Estado: aprobado (AAAA-MM-DD)` en el encabezado de `design.md` en el acto**, por la misma razón que en la fase 1.
 
 Una vez aprobado el design, decí que el paso siguiente es el skill **`planning-tasks`**, que comprueba el spec y lanza el workflow dinámico `tasks-fanout`: un revisor por tarea en paralelo, un reducer que sintetiza los veredictos y un único escritor al final. Nombralo, no lo arranques: igual que el propio `brainstorming` nombra a `specify` sin invocarlo, encadenarlo acá se saltearía la compuerta de aprobación del design que acaba de pasar. Que `planning-tasks` ahora sepa disparar el workflow por su cuenta no cambia eso — hace más fácil encadenar de más, no más aceptable.
 
@@ -66,8 +71,12 @@ Con el design aprobado ya sabés qué se construye y cómo; falta en qué orden,
 1. **El archivo es `tasks.md`** en la misma carpeta, siguiendo `assets/tasks-template.md`.
 2. **Una tarea, un ciclo de TDD**: test que falla → implementar → test que pasa, del tamaño que se pueda terminar de una sentada. Si una tarea necesita tres tests distintos para tener sentido, probablemente sean tres tareas.
 3. **Ordenalas para poder parar en cualquier punto**: cada tarea debería dejar el repo funcionando y en verde. Un plan que solo sirve si se completa entero no sirve como plan.
-4. **Cerrá la cadena de trazabilidad**: cada tarea dice qué criterios cubre. Después mirá el cruce en las dos direcciones — una tarea que no cubre ningún criterio es alcance que nadie pidió, y un criterio sin ninguna tarea es o un olvido o algo que hay que declarar fuera de alcance explícitamente. Ese cruce es la razón de numerar los criterios desde la fase 1.
-5. **Se presenta y espera aprobación**, igual que en las fases anteriores. El workflow lo deja en `pendiente de aprobación` y no lo aprueba solo.
+4. **Un criterio se asigna a la tarea que lo completa**, no a las que lo habilitan. Si un criterio dice «al presionar Calcular, mostrar la suma en la casilla de resultado», la tarea que escribe la función de suma **no lo cubre**: implementa una precondición suya. Esa tarea lleva `Cubre: —` y explica en `Por qué no cubre criterios:` cuál criterio ayuda a cerrar y en qué tarea se cierra.
+
+   Repartir un mismo criterio entre dos tareas parece más trazable y es lo contrario: ninguna de las dos lo satisface, las dos dicen cubrirlo, y el verificador queda sin forma de responder su propia pregunta —¿esta tarea cumple el criterio que dice cubrir?— sobre algo que solo cumple a medias. Ante la duda de si una tarea completa o habilita: ¿si esta tarea estuviera terminada y ninguna otra, el criterio se podría comprobar de punta a punta? Si la respuesta es no, habilita.
+
+5. **Cerrá la cadena de trazabilidad**: cada tarea dice qué criterios cubre. Después mirá el cruce en las dos direcciones — una tarea que no cubre ningún criterio es alcance que nadie pidió, y un criterio sin ninguna tarea es o un olvido o algo que hay que declarar fuera de alcance explícitamente. Ese cruce es la razón de numerar los criterios desde la fase 1.
+6. **Se presenta y espera aprobación**, igual que en las fases anteriores. El workflow lo deja en `pendiente de aprobación` y no lo aprueba solo, y quien recibe el sí lo asienta en el encabezado.
 
 Al planificar, cada tarea tiene solo objetivo, criterios que cubre y primer test — más dos
 campos opcionales que solo aparecen cuando aplican: `Por qué no cubre criterios:` (cuando `Cubre`

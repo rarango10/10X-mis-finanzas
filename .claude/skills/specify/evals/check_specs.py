@@ -75,6 +75,32 @@ def es_placeholder(token: str) -> bool:
     return bool(re.fullmatch(r"[A-Z]{1,4}([/-][A-Z]{1,4})+", token))
 
 
+# Criterios compuestos: dos comportamientos unidos por una conjuncion. La regla "un criterio,
+# un comportamiento" esta escrita en el template desde siempre y aun asi se saltea sola, porque
+# el criterio compuesto se lee natural al escribirlo. El costo aparece dos pasos despues: una
+# clausula queda con test y la otra sin, y dod-checker no tiene como decir "medio cumplido"
+# porque su veredicto es por criterio, no por clausula.
+#
+# Heuristico y con falsos positivos aceptables, igual que la lista de librerias de arriba: busca
+# una conjuncion seguida, mas adelante, de otro verbo en infinitivo. Un "y" que solo une dos
+# sustantivos ("el nombre y el monto") no dispara.
+COMPOUND_PATTERNS = [
+    (r"\b(?:y|e|además|and)\b[^.]{0,80}?\b\w+(?:ar|er|ir)\b", "conjunción + otro verbo"),
+]
+
+
+def compuestos(criterios):
+    """Criterios que parecen describir dos comportamientos en vez de uno."""
+    hallazgos = []
+    for cid, texto in criterios:
+        for patron, clase in COMPOUND_PATTERNS:
+            m = re.search(patron, texto, re.IGNORECASE)
+            if m:
+                hallazgos.append((cid, clase, m.group(0).strip()[:60]))
+                break
+    return hallazgos
+
+
 def filtraciones(criterios):
     """Criterios que nombran rutas, archivos, funciones o librerías concretas."""
     hallazgos = []
@@ -130,6 +156,16 @@ def revisar(run_dir: Path, root: Path):
                 print(f"      {cid}: {clase} → {token}")
         else:
             print("  frontera qué/cómo: sin filtraciones de implementación en los criterios")
+
+        dobles = compuestos(crit)
+        if dobles:
+            print(f"  ⚠ CRITERIOS COMPUESTOS: {len(dobles)} criterio(s) parecen describir dos comportamientos")
+            for cid, clase, frag in dobles:
+                print(f"      {cid}: {clase} → …{frag}…")
+            print("      (heurístico: revisá si conviene partirlos. Un criterio compuesto se cubre")
+            print("       a medias y el verificador no tiene cómo reportar 'medio cumplido'.)")
+        else:
+            print("  atomicidad: ningún criterio parece describir dos comportamientos")
 
     if des:
         t = des.read_text()

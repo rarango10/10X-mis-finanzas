@@ -51,6 +51,12 @@ El resto se completa mientras se trabaja: es el registro de lo que realmente pas
 - **Verificación:** <`dod-checker` → cumple · R1.1, R1.2 · npm test 14/14 · 2026-09-05. Sin esta
   línea, y sin un `cumple`, la tarea no puede pasar a `hecho` en la tabla de arriba. Si el
   veredicto fue menor, anotá cuál y qué faltó: eso es lo que va a mirar el que retome.>
+- **Verificación previa (superada):** <si una tarea se verificó más de una vez —pasa siempre que el
+  primer veredicto fue menor que `cumple`, o que el entorno no dejó correr los tests— **la línea
+  vigente es la última**, y las anteriores se marcan así, con el prefijo "previa (superada)". No se
+  borran: el camino hasta el `cumple` es justo lo que la bitácora existe para guardar. Pero sin
+  marcarlas, quien lea de arriba hacia abajo encuentra primero un `no-verificable` sobre una tarea
+  que la tabla da por `hecha`, y concluye lo contrario de lo que pasó.>
 - <Decisiones que hubo que tomar y que el design no fijaba. Esto es lo más valioso del
   archivo: dentro de un mes nadie se acuerda por qué se eligió así, y el código solo
   muestra el resultado, nunca la alternativa descartada.>

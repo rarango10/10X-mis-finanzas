@@ -54,7 +54,11 @@ Recordatorios al escribir:
 
 - Numeración: los criterios se citan como R1.1, R1.2 desde design.md y desde los tests.
   Si insertás un requisito nuevo en el medio, revisá qué referencias quedan desfasadas.
-- Un criterio, un comportamiento. Si tiene un "y también", probablemente son dos criterios.
+- Un criterio, un comportamiento. Si tiene un "y", un "y también" o un "además", casi seguro son
+  dos criterios — partilo. La fase 1 tiene un paso dedicado a releer buscando conjunciones, y
+  existe porque esta regla se saltea sola: el criterio compuesto se lee natural al escribirlo y el
+  costo aparece dos pasos después, cuando una cláusula queda con test y la otra sin, y el
+  verificador no tiene cómo decir "medio cumplido" porque su veredicto es por criterio.
 - Verificable: alguien tiene que poder escribir un test automatizado que falle si no se cumple.
   "El sistema debe ser rápido" no es verificable; "THE SYSTEM SHALL responder en menos de 2 s
   para archivos de hasta 5.000 filas" sí.

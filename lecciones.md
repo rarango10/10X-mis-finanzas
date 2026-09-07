@@ -369,7 +369,7 @@ y el brainstorming— decidieron sin preguntar, y el segundo además lo atribuy�
 
 ---
 
-## L18 · El paso siguiente se nombra después de aprobar, no al pedir la aprobación · `abierto`
+## L18 · El paso siguiente se nombra después de aprobar, no al pedir la aprobación · `resuelto` — en `specify`
 
 **Qué pasó.** En el demo de la calculadora (2026-09-06), `brainstorming` presentó el diseño y cerró
 con «¿Aprobás este diseño?», sin mencionar `specify` ni qué venía después. La persona lo leyó como
@@ -520,7 +520,7 @@ varía por corrida va en el `label`; lo que estructura el workflow va en el `tit
 
 ---
 
-## L21 · El encabezado `Estado` de `tasks.md` no tiene dueño después de la aprobación · `abierto`
+## L21 · El encabezado `Estado` de `tasks.md` no tiene dueño después de la aprobación · `resuelto` — en `specify`
 
 **Qué pasó.** En el demo de la calculadora (2026-09-06) la persona aprobó el plan y la sesión lo
 reportó como aprobado, pero el archivo siguió diciendo `> Estado: pendiente de aprobación`.
@@ -757,7 +757,7 @@ existe ese campo.
 
 ---
 
-## L26 · El `Registro` no tiene convención para un veredicto superado · `abierto`
+## L26 · El `Registro` no tiene convención para un veredicto superado · `resuelto`
 
 **Qué pasó.** T1 del demo (2026-09-06) se verificó tres veces: `no-verificable` la primera —por el
 bloqueo de iCloud—, y `cumple` la última, ya con el entorno sano y el contrato corregido. Quien
@@ -786,7 +786,7 @@ primera.
 
 ---
 
-## L27 · `Cubre` no distingue «satisface el criterio» de «es necesaria para él» · `abierto`
+## L27 · `Cubre` no distingue «satisface el criterio» de «es necesaria para él» · `resuelto`
 
 **Qué pasó.** En el plan de la calculadora (2026-09-06), **R2.1 está asignado a dos tareas**: T2
 (`Cubre: R2.1`) y T7 (`Cubre: R1.2, R2.1, R2.6, R4.2`). Pero R2.1 dice «WHEN el usuario presiona
@@ -956,7 +956,7 @@ acumula la mayor cantidad de reglas no escritas.**
 
 ---
 
-## L31 · La regla «un criterio, un comportamiento» existe y nada la hace cumplir · `abierto`
+## L31 · La regla «un criterio, un comportamiento» existe y nada la hace cumplir · `resuelto`
 
 **Qué pasó.** R1.1 del demo (2026-09-06) quedó escrito así: «THE SYSTEM SHALL mostrar dos campos
 editables para ingresar los números a sumar **y** un tercer campo de solo lectura para el
@@ -1164,6 +1164,44 @@ Los cuatro cambios son prosa, y su efecto solo se ve **usándolos**. `claude plu
 el inventario está completo, pero eso comprueba el empaquetado, no la conducta. La prueba real es la
 corrida final: rehacer el demo y ver si `dod-checker` detecta la dependencia fuera de contrato sin
 que nadie se la señale — falló dos de dos antes de este cambio.
+
+---
+
+## Lote 3 aplicado — 2026-09-07
+
+L31, L27, L26, L18 y L21 resueltas en `specify` y sus assets, más `plan-reducer`.
+
+**L31 — la atomicidad pasa a ser un paso.** Nuevo paso 6 de la fase 1: releer cada criterio buscando
+conjunciones **antes de presentar**. La regla ya estaba en el template y se salteaba sola; ahora está
+en el procedimiento, que es la diferencia entre una regla mencionada y una ejecutada.
+
+Y se agregó un **detector** en `evals/check_specs.py`: `COMPOUND_PATTERNS` busca una conjunción
+seguida de otro verbo en infinitivo. Probado contra los tres criterios del demo — marca R1.1 («dos
+campos editables **y** un tercero de solo lectura») y deja pasar R3.1 («vaciar las casillas de
+entrada y la de resultado»), donde la `y` solo une sustantivos. Heurístico, con falsos positivos
+aceptables, igual que la lista de librerías que ya tenía.
+
+**L27 — el criterio va a la tarea que lo completa.** Escrito en los dos lugares que hacían falta:
+`specify` (define el formato) y `plan-reducer` (lo aplica). Con la pregunta que lo decide sin
+ambigüedad: *¿si esta tarea estuviera terminada y ninguna otra, el criterio se podría comprobar de
+punta a punta?* Si no, habilita.
+
+**L26 — la línea de verificación superada.** Nueva línea en `tasks-template.md`:
+`**Verificación previa (superada):**`. No se borra el veredicto viejo —el camino hasta el `cumple` es
+lo que la bitácora existe para guardar— pero se marca, para que quien lea de arriba hacia abajo no
+encuentre un `no-verificable` sobre una tarea que la tabla da por hecha.
+
+**L18 y L21 — la compuerta se lee al decidir, y el sí aterriza en el archivo.** Las dos fases ahora
+dicen qué habilita la aprobación **al pedirla**, y asientan `> Estado: aprobado (fecha)` en el acto
+cuando llega. Con la razón escrita: la aprobación ocurre en el chat y el chat se pierde; lo que
+queda es el encabezado, y es lo que leen `planning-tasks` y el scout en la corrida siguiente.
+
+### Lo que falta de este lote
+
+**L21 quedó resuelta solo para `requirements.md` y `design.md`.** El encabezado de `tasks.md` lo
+escribe el workflow, que lo deja en `pendiente de aprobación` —correctamente, porque no le
+corresponde aprobar— y quien recibe el sí tiene que asentarlo. Ese «quien» es el paso 5, que todavía
+no tiene skill: se cierra en el **Lote 5**.
 
 ---
 
