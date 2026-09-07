@@ -301,7 +301,7 @@ archivos, módulos o componentes concretos. Eso es del design.
 
 ---
 
-## L15 · Decidió el stack sin preguntar, habiéndoselo pedido · `abierto` (escalada)
+## L15 · Decidió el stack sin preguntar, habiéndoselo pedido · `resuelto` — vía L16 y L17
 
 **Qué pasó.** El prompt del paso 1 decía «proponeme el stack y preguntame lo que necesites decidir».
 Escribió React + Testing Library + Biome directamente, sin consultar — y el propio archivo admite
@@ -320,7 +320,7 @@ verificables y etiquetado del origen de cada decisión, en vez de más prosa pid
 
 ---
 
-## L16 · `brainstorming` fija el ritmo de las preguntas pero no la condición de corte · `abierto`
+## L16 · `brainstorming` fija el ritmo de las preguntas pero no la condición de corte · `resuelto`
 
 **Qué pasó.** En el demo de la calculadora (2026-09-06), el skill hizo **una** pregunta y pasó a
 proponer el diseño, decidiendo por su cuenta otras cuatro cosas de comportamiento: decimales y
@@ -345,7 +345,7 @@ solo, sin alternativas ni contrapartidas.
 
 ---
 
-## L17 · Un modelo puede devolverte una decisión propia como si fuera tuya · `abierto`
+## L17 · Un modelo puede devolverte una decisión propia como si fuera tuya · `resuelto`
 
 **Qué pasó.** En el mismo diseño: «El resultado no se recalcula solo mientras el usuario tipea —
 solo al apretar Calcular, **tal como lo pediste**». La persona nunca pidió eso; había mencionado un
@@ -369,7 +369,7 @@ y el brainstorming— decidieron sin preguntar, y el segundo además lo atribuy�
 
 ---
 
-## L18 · El paso siguiente se nombra después de aprobar, no al pedir la aprobación · `resuelto` — en `specify`
+## L18 · El paso siguiente se nombra después de aprobar, no al pedir la aprobación · `resuelto`
 
 **Qué pasó.** En el demo de la calculadora (2026-09-06), `brainstorming` presentó el diseño y cerró
 con «¿Aprobás este diseño?», sin mencionar `specify` ni qué venía después. La persona lo leyó como
@@ -1202,6 +1202,43 @@ queda es el encabezado, y es lo que leen `planning-tasks` y el scout en la corri
 escribe el workflow, que lo deja en `pendiente de aprobación` —correctamente, porque no le
 corresponde aprobar— y quien recibe el sí tiene que asentarlo. Ese «quien» es el paso 5, que todavía
 no tiene skill: se cierra en el **Lote 5**.
+
+---
+
+## Lote 4 aplicado — 2026-09-07
+
+L16, L17 y L18 resueltas en `brainstorming.md`. **L15 se cierra con ellas**: era el síntoma, no la
+causa.
+
+Las adiciones van **en inglés**, que es el idioma de este skill — el único del harness que lo está,
+porque viene del skill de Anthropic adaptado. Mezclar idiomas adentro de un mismo archivo le habría
+costado coherencia al texto que justamente tiene que leerse como una sola voz.
+
+**L16 — paso 3 nuevo, «Know when to stop asking».** La frase que lo resume: *«One at a time» sets the
+rate; this sets the exit condition, and without it the rate is all you have.* Antes de proponer hay
+que **enumerar las decisiones de comportamiento que el pedido deja abiertas**, con ejemplos
+concretos —qué pasa con entrada vacía o inválida, si algo recalcula solo o a demanda, qué borra un
+«limpiar», qué campos son editables— y solo se avanza con esa lista vacía o con lo que quede escrito
+como supuesto.
+
+Con la razón del costo: un supuesto declarado es honesto; uno silencioso **se convierte en criterio
+de aceptación numerado dos pasos después, y de ahí en más nadie lo vuelve a cuestionar**.
+
+**L17 — sección nueva «Label every decision with where it came from».** Tres etiquetas: *you asked
+for this* · *I decided this — tell me if it works* · *I assumed this because X*. Y la observación que
+la hace necesaria: **ninguna compuerta atrapa esto**, porque la compuerta pregunta «¿aprobás?» y
+nunca «esto que digo que pediste, ¿lo pediste?».
+
+**L18 — el paso 6 nombra `specify` al pedir el sí**, y `## After Approval` pasó a ser una
+confirmación en vez de la primera noticia.
+
+### Una nota de costo
+
+`claude plugin details` después de los lotes 2, 3 y 4: el always-on quedó igual (~1.919 tok), y lo
+que subió es el on-invoke — `specify` de 5.1k a 6.2k, `dod-checker` de 2.6k a 4.7k, `brainstorming`
+de 2k a 2.8k. Es el precio de las reglas nuevas y se paga solo cuando el skill se invoca, no en cada
+sesión. Vale tenerlo medido: si una segunda ronda de mejoras vuelve a agregar prosa, este es el
+número a mirar.
 
 ---
 
