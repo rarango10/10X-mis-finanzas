@@ -1029,6 +1029,70 @@ los agentes que narran lo que les llega producen hallazgos que de otro modo ser�
 
 ---
 
+## L33 · Un veredicto solo vale para el estado en que se tomó · `abierto`
+
+**Qué pasó.** Al armar el commit del demo (2026-09-06), `npm run verify` estaba en rojo: Vitest
+levantaba los tres specs de Playwright, porque su `include` por defecto matchea
+`end2end/**/*.spec.ts`. Eso contradecía el `Objetivo` de T11, que afirmaba que `verify` quedaba en
+verde — **cierto solo mientras `end2end/` estuviera vacía**, que es exactamente el estado en que
+`dod-checker` lo había verificado. El paso 7 no introdujo el hueco: lo destapó.
+
+**Por qué importa.** `hecho` puede volverse mentira **sin que el código de la tarea cambie una
+línea**. El veredicto era correcto cuando se tomó; lo invalidó un cambio en otra parte del repo. Y
+nada en el harness detecta esa caducidad: `dod-checker` verifica una tarea en un momento, y no existe
+la noción de vigencia de un veredicto ni de qué lo invalida.
+
+**Lo más incómodo:** el propio `Objetivo` de T11 decía que la carpeta vacía era «el resultado
+esperado hasta que `e2e-test-writer` los escriba». **El plan sabía que el estado iba a cambiar** y
+nadie conectó eso con la validez del veredicto. La información estaba escrita y no había dónde
+usarla.
+
+**Qué habría que hacer.** Darle fila y conducta al **paso 8 (commit)**, que hoy se menciona en prosa
+y no está en la tabla — y que es justo donde el problema apareció:
+
+- Antes del commit se corre la **verificación completa** del proyecto (el comando de higiene, no el
+  de corrección).
+- **Un rojo reabre la tarea afectada**: vuelve a `en curso` y regresa a `hecho` solo con un `cumple`
+  nuevo, tomado ya en el estado final del repo.
+- Queda dicho que un veredicto se toma **sobre un estado**, y que la corrida final comprueba que
+  todos los veredictos siguen siendo ciertos **juntos**. Verificar tarea por tarea no garantiza el
+  conjunto — es la misma distinción que separa el paso 6 del paso 7, un nivel más arriba.
+
+**Confirma [[L1]] empíricamente, y esa es la parte más valiosa.** Entre lo que `/harness-init` «sí
+conviene sembrar» ya figuraba textualmente ese `vitest.config.ts` excluyendo `end2end/`. El repo de
+finanzas lo tiene desde que se construyó el ciclo e2e; el demo no lo tuvo, porque el skill que debía
+sembrarlo no existe — y el bug apareció exactamente donde la lección decía que aparecería. Deja de
+ser una mejora especulativa: es la única cuyo valor ya se midió.
+
+**Y la regla 3 aguantó bajo presión.** T11 volvió a `en curso`, se arregló con
+`exclude: [...configDefaults.exclude, 'end2end/**']`, y regresó a `hecho` recién con un `cumple`
+nuevo, esta vez comprobado con la carpeta ya poblada. El DoD funcionó exactamente para lo que existe.
+
+---
+
+## L34 · Un agente razonó su frontera de propiedad mejor de lo que se le pidió · `resuelto` — evidencia positiva
+
+**Qué pasó.** Biome marcaba problemas de formato en los specs de `end2end/`. Como esa carpeta tiene un
+único escritor autorizado, se le pidió el arreglo a `e2e-test-writer`. **Se negó a correr
+`npm run format`** —el comando declarado en `CLAUDE.md`— porque actúa sobre todo el repo, incluido
+`src/`, que está fuera de su región. Corrió `npx biome check --write end2end/` en su lugar.
+
+**Por qué se registra.** Su instrucción dice qué archivos no puede tocar; **no** dice «si un comando
+del proyecto excede tu región, acotalo». Dedujo la restricción desde el principio de propiedad en vez
+de desde una lista. El diseño de un solo escritor por documento no solo se cumple: se entiende y se
+extiende a casos no previstos.
+
+**Qué deja para el harness.** Dos cosas:
+
+- **La evidencia de que la arquitectura se transmite.** La mayoría de las lecciones son huecos; esta
+  es una confirmación de que las reglas bien fundadas —con su porqué escrito, no solo su qué—
+  producen conducta correcta en situaciones que nadie anticipó.
+- **Un caso a citar.** Al redactar las reglas de [[L22]] y [[L32]] conviene tenerlo presente: explicar
+  el principio funciona mejor que enumerar prohibiciones, y este es el ejemplo que lo demuestra
+  dentro del propio proyecto.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
