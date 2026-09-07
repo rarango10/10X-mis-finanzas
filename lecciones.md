@@ -765,6 +765,42 @@ primera.
 
 ---
 
+## L27 · `Cubre` no distingue «satisface el criterio» de «es necesaria para él» · `abierto`
+
+**Qué pasó.** En el plan de la calculadora (2026-09-06), **R2.1 está asignado a dos tareas**: T2
+(`Cubre: R2.1`) y T7 (`Cubre: R1.2, R2.1, R2.6, R4.2`). Pero R2.1 dice «WHEN el usuario presiona
+"Calcular"... THE SYSTEM SHALL mostrar la suma en la casilla de resultado», y T2 solo implementa la
+aritmética: no hay botón ni casilla. T2 **no satisface** R2.1 — satisface una precondición suya.
+
+**La consecuencia en el veredicto.** `dod-checker` devolvió `cumple`, justificando que «R2.1 se cubre
+en el alcance que T2 se propuso». Esa noción de *alcance propuesto* **no existe en su contrato**: la
+pregunta que tiene que responder es si la implementación satisface el criterio en letra e intención,
+y la letra pide botón y casilla. Al no encajar la pregunta, el agente **inventó vocabulario para
+poder contestarla** en vez de reportar el desajuste. Es un modo de falla distinto de [[L24]]: allá
+faltaba un paso, acá falta un valor de respuesta.
+
+**El plan ya resuelve bien el mismo caso en otra parte.** T10 lleva `Cubre: —` con la justificación
+«Cablea piezas cuyo comportamiento ya está cubierto por R1, R2, R3 y R4 en T6-T8». Ahí `plan-reducer`
+entendió que una tarea habilitante no cubre el criterio; en T2 aplicó el criterio opuesto. La misma
+corrida usa las dos convenciones — señal de que la regla no está escrita en ningún lado.
+
+**Por qué va a repetirse siempre.** Casi todo criterio de aceptación que mezcla lógica e interfaz se
+parte así: la función pura primero, el cableado después. Con la regla de un criterio por tarea sin
+aclarar, cada feature no trivial va a producir la misma ambigüedad.
+
+**Qué habría que hacer.** Fijar la regla en `specify` (que define el formato) y en `plan-reducer`
+(que lo aplica): **el criterio se asigna a la tarea que lo completa**, no a las que lo habilitan. Una
+tarea habilitante lleva `Cubre: —` y explica en `Por qué no cubre criterios:` cuál criterio ayuda a
+cerrar y en qué tarea se cierra. El harness ya tiene el vocabulario —lo usan T1, T10 y T11—, solo
+falta decir cuándo corresponde.
+
+Y en `dod-checker`, la contraparte: **si un criterio de la columna `Cubre` no se puede evaluar
+porque la tarea solo implementa una parte, eso es un hallazgo del plan**, no algo que el verificador
+deba resolver reinterpretando el alcance. Va a `specGaps` **y** baja el criterio a `sin-evidencia`,
+que por la regla de composición deja la tarea en `cumple-parcial`.
+
+---
+
 ## Anotaciones sueltas del entorno
 
 Cosas que no son del harness pero cuestan tiempo si se olvidan.
