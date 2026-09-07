@@ -23,7 +23,7 @@ npm run test:e2e    # playwright test (solo el ciclo verify-e2e; hoy no hay app 
 | 2 | `requirements.md` | skill `specify`, fase 1 | «escribamos el spec», «definamos los criterios» |
 | 3 | `design.md` | skill `specify`, fase 2 | «pasemos al diseño» |
 | 4 | `tasks.md` | skill `planning-tasks` → workflow `tasks-fanout` | «planeemos las tareas», «desglosemos las tareas», «armemos el plan» |
-| 5 | código + tests | TDD, a mano | «implementemos T3» |
+| 5 | código + tests | skill `implement-task` (TDD) | «implementemos T3», «seguimos con la que sigue» |
 | 6 | veredicto de verificación (en el chat, sin archivo) | subagente `dod-checker` | «verificá T3», «¿T5 está hecha?» |
 | 7 | `e2e-tests-plan.md` | skill `verify-e2e`, fase 2 | «verifiquemos e2e», «probemos de punta a punta» |
 | 8 | `end2end/<feature>/*.spec.ts` | subagente `e2e-test-writer` | (lo invoca `verify-e2e`, no se pide suelto) |
@@ -50,7 +50,10 @@ le sigue — solo lo nombra.
   El workflow revisa en paralelo con agentes de solo lectura y materializa con un único escritor;
   planificar por afuera reintroduce el segundo escritor que eso elimina.
 - **El avance lo escribe quien implementa**, y solo en dos lugares de la tarea que está haciendo:
-  su celda de `Estado` y su bloque de `Registro`. No es una excepción a la regla anterior: son
+  su celda de `Estado` y su bloque de `Registro` — más el **encabezado de aprobación** de
+  `tasks.md`, una sola vez, cuando la persona confirma el plan: `task-writer` tiene prohibido
+  tocarlo y ningún otro paso lo retoma, así que sin esto la aprobación se queda en el chat y el
+  archivo sigue diciendo `pendiente`. No es una excepción a la regla anterior: son
   regiones distintas del archivo, con dueños distintos, y nunca se escriben a la vez. La condición
   de carrera que la arquitectura evita es la de varios planificadores pisándose en paralelo, no la
   de un plan y su bitácora. Lo único prohibido es implementar mientras hay una corrida de
@@ -62,6 +65,18 @@ le sigue — solo lo nombra.
   `dod-checker` reporta y no escribe; el veredicto lo asienta quien implementa, al registrar.
   Por eso la columna `Estado` es el registro durable de qué está hecho de verdad: es lo que hay
   que leer para saberlo, y no hay que buscarlo en ningún otro lado.
+- **La unidad del paso 5 es la tarea, no la fase.** Un `tasks.md` con once tareas son once ciclos
+  —rojo → verde → `dod-checker` → asentar → aprobación— y no uno largo. La compuerta entre tareas
+  se puede renunciar, pero solo diciéndolo con el vocabulario de `implement-task`
+  (`--modo corrido`): una lista de tareas en el pedido no es una renuncia. Lo que no se renuncia en
+  ningún modo es que **cada tarea se verifica** y que un veredicto menor que `cumple` **corta la
+  corrida**. Renunciar a la aprobación intermedia es acelerar; renunciar al corte es cambiar lo que
+  significa terminar.
+- **Un commit por tarea, con su id en el mensaje.** Así el avance queda registrado por la
+  herramienta y no solo por la prosa de quien implementa; si una tarea necesitó dos rondas van dos
+  commits con el mismo id, porque el id es lo que agrupa. Ojo con lo que esto sí prueba: que la
+  tarea fue una unidad de trabajo, no que el test se escribió antes que el código. Para eso harían
+  falta commits en rojo, y eso contradice que cada tarea deje el repo en verde.
 - **El ciclo e2e no repara código.** `e2e-triager` diagnostica un fallo y dice a dónde va, nada
   más: si la causa es el test, vuelve al plan de tests; si es el código, la tarea afectada baja a
   `en curso` y se arregla con el TDD de siempre, con `dod-checker` como única puerta de vuelta a

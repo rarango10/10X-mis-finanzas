@@ -1,0 +1,13 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "harness-spike",
+  "version": "0.1.0",
+  "description": "Spike: harness de desarrollo asistido (brainstorm -> spec -> plan -> TDD -> verificacion)",
+  "author": {
+    "name": "Raul Arango",
+    "email": "raul.arango@gmail.com"
+  },
+  "skills": [
+    "./"
+  ]
+}

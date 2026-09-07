@@ -520,7 +520,7 @@ varía por corrida va en el `label`; lo que estructura el workflow va en el `tit
 
 ---
 
-## L21 · El encabezado `Estado` de `tasks.md` no tiene dueño después de la aprobación · `resuelto` — en `specify`
+## L21 · El encabezado `Estado` de `tasks.md` no tiene dueño después de la aprobación · `resuelto`
 
 **Qué pasó.** En el demo de la calculadora (2026-09-06) la persona aprobó el plan y la sesión lo
 reportó como aprobado, pero el archivo siguió diciendo `> Estado: pendiente de aprobación`.
@@ -535,6 +535,10 @@ La aprobación ocurre en el chat y no aterriza en el archivo.
 corrida siguiente, y `planning-tasks` decide con él si el spec está listo. Un plan aprobado que
 figura como pendiente hace que la próxima pasada del workflow lo trate como no aprobado, y que
 cualquiera que abra el repo lea que se está implementando sobre un plan sin cerrar.
+
+**Dónde quedó resuelta.** La mitad de `requirements.md` y `design.md`, en `specify` (Lote 3). La de
+`tasks.md`, en el skill `implement-task` (Lote 5): comprueba el encabezado antes de la primera tarea
+y lo asienta cuando la persona confirma.
 
 **Es la misma forma que [[L1]]**, pero sobre una transición de estado en vez de un documento: el
 ciclo define quién **produce** cada archivo y no quién **marca su aprobación**. La regla «cada paso
@@ -822,7 +826,7 @@ que por la regla de composición deja la tarea en `cumple-parcial`.
 
 ---
 
-## L28 · La granularidad de la compuerta dentro del paso 5 no está definida · `abierto`
+## L28 · La granularidad de la compuerta dentro del paso 5 no está definida · `resuelto`
 
 **Qué pasó.** Al llegar a T3 del demo (2026-09-06) se propuso implementar T3, T4 y T5 de corrido sin
 aprobación humana entre ellas. La persona lo rechazó: rompe la naturaleza semiautomática del harness.
@@ -853,9 +857,26 @@ está mal, no como prudencia.
 unidad del paso 5 es **la tarea**, no la fase. Y en el `tasks-template.md`, que el ciclo por tarea
 incluye la aprobación como último acto antes de pasar a la siguiente.
 
+**Refinamiento al aplicarlo (Lote 5).** La compuerta entre tareas quedó **renunciable**, y eso no
+reabre el hueco. Conviene tener escrito por qué, porque parece que sí: **la ambigüedad que esta
+lección vino a cerrar era que la granularidad no estaba definida**, y eso se cierra definiéndola. Una
+renuncia explícita, con vocabulario propio y con el corte intacto, es una decisión tomada; la lectura
+«las once tareas son un solo paso» era una decisión que nadie tomó y que el texto permitía igual.
+
+Lo que hace que la renuncia no sea un agujero son dos condiciones, y las dos están en el `SKILL.md`:
+
+- **Se dice con vocabulario, no se infiere.** Solo el literal `--modo corrido` la activa, igual que
+  `--modo autonomo` en `verify-e2e`. «Implementemos T3, T4 y T5» **es una lista, no una renuncia**.
+  Y tampoco la activan la prisa ni el tono. Si «explícito» lo juzga el modelo, la compuerta vuelve a
+  ser opinable — y ya hay dos lecciones de que lee la autorización más ancha de lo que se dio
+  ([[L15]], [[L17]]).
+- **La regla de corte no se renuncia nunca.** Aunque se pidan tres de corrido, un veredicto distinto
+  de `cumple` para la corrida ahí. Renunciar a la aprobación intermedia es **acelerar**; renunciar al
+  corte es **cambiar lo que significa terminar**, y `hecho` significa verificado.
+
 ---
 
-## L29 · La evidencia de que hubo TDD es prosa autorreportada · `abierto`
+## L29 · La evidencia de que hubo TDD es prosa autorreportada · `resuelto parcialmente`
 
 **Qué pasó.** T2 a T5 del demo (2026-09-06) construyeron `calc.ts` en cuatro incrementos reales, cada
 uno con su alcance — verificado leyendo los Registros. Pero al intentar **comprobarlo de forma
@@ -896,13 +917,31 @@ lo que ya ocurre.
 Cuesta una línea de regla en `CLAUDE.md` y un paso en el ciclo por tarea, y convierte la afirmación
 más importante del método —«acá se hace TDD»— de declaración en dato.
 
+**Corrección: eso último está sobrevendido, y por eso la lección queda `resuelto parcialmente`.** Un
+commit por tarea **no** prueba que el test se escribió primero: trae el test y la implementación
+juntos, así que lo que demuestra es que la tarea fue una **unidad de trabajo**, no un orden. La
+prueba fuerte serían **dos** commits por tarea —uno rojo y uno verde— y está descartada por una razón
+buena: un commit en rojo contradice la regla de que cada tarea deja el repo funcionando y en verde.
+
+Así que el hueco se cubre en tres pedazos y uno queda abierto:
+
+| Qué aporta | Qué no |
+|---|---|
+| El commit por tarea da trazabilidad y unidad de trabajo, escrita por la herramienta | No da el orden |
+| La línea del rojo en el `Registro` da **diagnóstico**: qué falló y cómo se veía | No es prueba — es autorreportada igual que el resto de la bitácora |
+| — | **El orden real sigue sin ser verificable de forma independiente** |
+
+La línea del rojo se agregó igual, y vale por lo que sí hace: «rojo porque `add('0.1','0.2')`
+devolvía `0.30000000000000004`» le explica a quien lea en un mes por qué existe el redondeo, que es
+algo que el código terminado no muestra nunca. Es diagnóstico, no evidencia.
+
 **Nota de alcance.** El repo de finanzas sí tiene commits por etapa, así que el hueco no se había
 notado. Apareció recién al usar el harness en un proyecto nuevo, donde nadie corrió `git init` y nada
 en el método lo pedía. Es exactamente el tipo de supuesto tácito que la reutilización destapa.
 
 ---
 
-## L30 · La fase de implementación no tiene instrucción de cierre · `abierto`
+## L30 · La fase de implementación no tiene instrucción de cierre · `resuelto`
 
 **Qué pasó.** En el demo (2026-09-06) la persona preguntó si `dod-checker` no debería dispararse solo
 al terminar de implementar. La conducta observada:
@@ -1091,6 +1130,52 @@ extiende a casos no previstos.
   el principio funciona mejor que enumerar prohibiciones, y este es el ejemplo que lo demuestra
   dentro del propio proyecto.
 
+## L35 · Dos archivos del plugin nunca tuvieron fuente en el repo · `resuelto`
+
+**Qué pasó.** Al ir a agregarle al router la fila del paso 5 (Lote 5, 2026-09-07) apareció que
+`~/.claude/skills/harness-spike/SKILL.md` —el router, la pieza que enruta el ciclo entero— **no
+existe en el repo**. Buscando el resto aparecieron dos:
+
+```
+~/.claude/skills/harness-spike/SKILL.md                    (el router)
+~/.claude/skills/harness-spike/.claude-plugin/plugin.json  (el manifiesto)
+```
+
+Las dos se escribieron directamente en el plugin al scaffoldearlo y nunca volvieron al repo.
+
+**Por qué importa.** El harness tiene un invariante declarado —**el repo es la fuente, el plugin es
+una copia**— y estos dos archivos lo violaban en silencio. Las consecuencias son concretas: no se
+puede versionar un cambio de versión del plugin, no se puede reconstruir el plugin desde el repo si
+se pierde, y una edición del router no queda en ningún commit. Encima es la pieza de mayor alcance
+del harness: es lo primero que lee una sesión que pregunta cómo se trabaja acá.
+
+**Por qué nadie lo notó, que es la parte que se generaliza.** El comando de resincronización
+**enumera directorios** —`skills`, `agents`, `workflows`, `checks`— y verifica con un `diff -rq` por
+directorio. Los cuatro dan «sin deriva», porque los cuatro están sincronizados. Los dos archivos que
+faltan no están en ninguno de ellos, así que ningún paso del chequeo los mira.
+
+> **Un chequeo que enumera lo que conoce nunca encuentra lo que no está en su lista.**
+
+Es la misma familia que [[L20]] —algo deja de funcionar y no emite señal— y que el guard que hubo
+que agregarle al linter en el Lote 1: un chequeo que no encuentra nada pasa siempre.
+
+**Qué habría que hacer.** Las dos mitades, y la segunda vale más que la primera:
+
+- **Traer los dos archivos al repo**, en `.claude/plugin-root/`. Ese nombre importa: **no** puede ir
+  bajo `.claude/skills/`, porque todo lo que cuelga de ahí se auto-carga y el router aparecería dos
+  veces en la misma sesión. Es la misma trampa del respaldo que se convirtió en un plugin vivo,
+  anotada en el Lote 1.
+- **Cambiar la forma del chequeo, no agregarle dos entradas a la lista.** Enumerar dos archivos más
+  arregla este caso y deja el defecto intacto: el próximo archivo que nazca en el plugin se va a
+  perder igual. El chequeo correcto compara **el árbol completo del plugin** contra lo que el repo
+  puede reconstruir, y exige que sobren cero archivos. Eso sí habría encontrado esto.
+
+**La moraleja de método.** El invariante estaba escrito y se cumplía en el 95% de los archivos, que
+es justo la proporción que lo vuelve invisible. Lo que falló no fue la regla: fue que su verificación
+tenía la misma forma que la regla —una lista de lugares— en vez de la forma contraria —una búsqueda
+de lo que no está previsto—. Una verificación construida a imagen de lo que verifica solo puede
+encontrar los errores que ya se imaginaron.
+
 ---
 
 ## Lote 1 aplicado — 2026-09-07
@@ -1239,6 +1324,63 @@ que subió es el on-invoke — `specify` de 5.1k a 6.2k, `dod-checker` de 2.6k a
 de 2k a 2.8k. Es el precio de las reglas nuevas y se paga solo cuando el skill se invoca, no en cada
 sesión. Vale tenerlo medido: si una segunda ronda de mejoras vuelve a agregar prosa, este es el
 número a mirar.
+
+## Lote 5 aplicado — 2026-09-07
+
+L30, L28, L22 (mitad de invocación), L21 (mitad de `tasks.md`) y L35 resueltas; **L29 resuelta
+parcialmente**, con su límite escrito. La pieza central es un skill nuevo:
+`.claude/skills/implement-task/SKILL.md`.
+
+**El paso 5 dejó de ser el único sin dueño.** La fila 5 decía «TDD, a mano», y ese hueco no era
+neutro: los pasos con skill se comportan igual siempre, y el que no lo tenía improvisaba. Las cuatro
+reglas que se le habían acumulado sin escribir entran ahora como pasos de un procedimiento, no como
+menciones — que es la diferencia que el Lote 2 ya había pagado con L24.
+
+**L30 — el cierre del paso.** El ciclo por tarea termina invocando a `dod-checker` **sin preguntar**.
+Con las dos razones escritas, porque son las que hacen que la regla se sostenga: una tarea
+implementada y sin verificar queda en `en curso`, indistinguible de «a medio hacer»; y preguntar
+«¿verifico?» pide autorizar algo sin costo irreversible y sin cuyo resultado la persona no puede
+decidir nada. **La compuerta va después del veredicto**, no en el medio.
+
+**L28 — una tarea, una compuerta**, con la renuncia explícita que se decidió al aplicarlo y sus dos
+condiciones (arriba, en la propia lección). Se agregó además el autodiagnóstico que delató la
+propuesta mala en el demo: **si te descubrís proponiendo implementar de a tres pero verificar de a
+una, tratá esa asimetría como la señal de que la propuesta está mal.** Una precaución puesta de un
+lado y no del otro no es un diseño.
+
+**L22 — la mitad del llamador.** El Lote 2 escribió qué ignora `dod-checker`; faltaba qué se le
+manda. Ahora está del lado de quien invoca: pasale el id y la carpeta, y nada más. Con el daño real
+citado —el verificador usó la bitácora del implementador **como checklist** y encontró exactamente
+las dos dependencias que ya estaban confesadas— porque el ejemplo enseña lo que la prohibición sola
+no: la contaminación no estuvo en los comandos, estuvo en **qué buscó y contra qué lo comparó**.
+
+**L21 — el sí aterriza en el archivo, también para `tasks.md`.** El skill comprueba el encabezado
+antes de la primera tarea: si dice `pendiente de aprobación`, pregunta y lo asienta. Eso obligó a
+tocar `CLAUDE.md`: la regla decía que quien implementa escribe **dos** regiones, y ahora son esas dos
+más el encabezado de aprobación, una sola vez. Sin ese cambio el skill contradecía el contrato.
+
+**L29 — lo que se pudo, dicho como es.** Un commit por tarea con el id en el mensaje, más la línea
+del rojo literal en el `Registro`. La corrección de encuadre está en la lección: el commit prueba
+unidad de trabajo y no orden, y la línea del rojo es diagnóstico y no evidencia. Se escribió así
+también **dentro del `SKILL.md`**, para que quien lo lea no crea que commitear cierra el asunto.
+
+### Lo que apareció al aplicarlo
+
+**[[L35]], y es la más incómoda del lote.** El router del plugin y su manifiesto nunca tuvieron
+fuente en el repo, contra un invariante declarado. Se trajeron a `.claude/plugin-root/` —fuera de
+`.claude/skills/`, que se auto-carga— y **se cambió la forma del chequeo**: `.claude/checks/sync-plugin.sh`
+compara el árbol completo del plugin contra el que el repo puede reconstruir, en las dos direcciones,
+en vez de hacer `diff -rq` sobre cuatro directorios conocidos.
+
+Se comprobó que **falla** en los dos casos —un huérfano en el plugin, un archivo del repo que no
+llega— porque un chequeo que nunca falla es decorativo, que es la misma lección que el guard del
+linter en el Lote 1.
+
+**Y el comando de resincronización arrastraba un segundo defecto, más chico.** `cp -R .claude/skills/*`
+habría copiado también `skill-creator`, que vive en el repo pero no es del harness. El script lo
+excluye con una **lista de exclusión y no de inclusión**, a propósito: así un skill nuevo del harness
+entra solo. Con una lista de inclusión, `implement-task` no habría llegado al plugin y nadie se
+habría enterado — exactamente el modo de falla de L35, una vez más.
 
 ---
 
