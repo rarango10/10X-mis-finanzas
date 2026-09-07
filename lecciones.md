@@ -166,7 +166,7 @@ Playwright a todo el que lo instale, aunque nunca use el ciclo e2e. El MCP va a 
 
 ---
 
-## L7 · El ciclo e2e nunca corrió entero · `abierto`
+## L7 · El ciclo e2e nunca corrió entero · `resuelto` — corrió y salió bien
 
 **Qué pasó.** El paso 7 está construido y verificado solo hasta su primera compuerta: la fase 1
 detecta que no hay app navegable y detiene el ciclo sin escribir nada. Lo que sigue —plan de tests,
@@ -176,8 +176,29 @@ ningún proyecto de prueba tuvo interfaz.
 **Por qué importa.** Es la parte más nueva del harness y la menos probada. `e2e-triager` tiene el
 contrato de salida más complejo de todos los agentes y nunca lo emitió de verdad.
 
-**Qué habría que hacer.** El demo de la calculadora web es la primera oportunidad: es una app
-navegable de verdad. Requiere `npx playwright install chromium` (~150 MB), que es decisión humana.
+**Corrió entero el 2026-09-06**, sobre la calculadora del demo, con las tres compuertas activas. Las
+cuatro precondiciones de la fase 1 pasaron por primera vez. Resultado: plan con tres casos (E1 happy
+path, E2 sobre R2.2, E3 sobre R2.3), tres specs generados —uno por caso, nombrados por id—, y los
+tres en verde en la primera corrida real de `npm run e2e`.
+
+**La calidad de lo generado, que era la incógnita:**
+
+- **Todos los selectores por rol y nombre accesible** (`getByRole('button', { name: 'Calcular' })`),
+  cero CSS y cero posiciones. Sin `waitForTimeout` en ningún lado. Las dos instrucciones más
+  específicas de `e2e-test-writer`, respetadas.
+- **Y algo que no estaba pedido:** los dos casos de fallo agregan
+  `await expect(page.getByRole('alert')).toHaveCount(0)`. El agente fue a leer la sección «No
+  incluye» de `requirements.md` —«Mensajes de error visibles para entradas inválidas — se resuelven
+  en silencio»— y la convirtió en aserción positiva. No verifica solo que la suma dé bien: verifica
+  que el manejo silencioso sea efectivamente silencioso.
+
+Eso resuelve por su cuenta una tensión que se había anticipado: R2.2 y R2.3 no describen rechazos
+sino normalización silenciosa, así que llamarlos «casos de fallo» era forzado. El writer entendió el
+matiz y lo codificó.
+
+**Lo que queda sin ejercitar.** Los tres casos pasaron, así que el **ruteo** —`causa: test` /
+`codigo` / `spec`— no se probó, ni el loop de reintento del lado del test. Es la parte con más
+diseño y todavía cero pruebas. Se ejercitaría sola la primera vez que un e2e falle de verdad.
 
 ---
 
@@ -976,6 +997,35 @@ verificador:
 **Nota.** Es la tercera vez que `dod-checker` detecta correctamente un problema y no lo deja llegar
 al veredicto ([[L24]], [[L27]], esta). El juicio está; lo que falla es la traducción del hallazgo a
 la escala de veredictos.
+
+---
+
+## L32 · Un agente no distingue su propia configuración de lo que le mandó el llamador · `abierto`
+
+**Qué pasó.** En la corrida de `verify-e2e` (2026-09-06), `e2e-triager` reportó que su mensaje de
+invocación «traía además contenido del skill `specify`» que no le correspondía, y **dijo haberlo
+ignorado**. La persona no le envió tal cosa: `e2e-triager` declara `skills: [specify]` en su
+frontmatter, así que ese contenido **es parte de su propia configuración**, precargado a propósito.
+
+**Por qué importa.** El agente descartó una pieza de su configuración por creerla contaminación
+externa. Acá no hizo daño —los tres casos pasaron y no hubo nada que rutear— pero `specify` es
+justamente lo que le da el formato de `tasks.md`: si un caso hubiera fallado con `causa: codigo`,
+habría tenido que nombrar la tarea afectada trabajando sin el template que acababa de tirar.
+
+**La interacción peligrosa con [[L22]].** Allí se propone que `dod-checker` ignore explícitamente las
+afirmaciones que le lleguen en el prompt sobre resultados previos. Esta anomalía muestra que **la
+frontera entre «lo que me mandó el llamador» y «lo que soy yo» no es nítida para el agente**. Una
+regla de ignorar mal calibrada puede hacer que descarte sus propios skills precargados — que es
+exactamente lo que acaba de pasar sin que nadie se lo pidiera.
+
+**Qué habría que hacer.** Al redactar la regla de [[L22]], acotarla a lo que se puede identificar sin
+ambigüedad —afirmaciones sobre resultados de comandos, veredictos previos, o si la tarea está
+cumplida— y **decir explícitamente que los skills precargados por el frontmatter son parte de su
+configuración y se usan**. Nombrar lo que sí es propio es más seguro que enumerar lo que hay que
+ignorar.
+
+**Nota de método.** Lo reportó el propio agente, sin que nadie preguntara. Vale como señal de que
+los agentes que narran lo que les llega producen hallazgos que de otro modo serían invisibles.
 
 ---
 
