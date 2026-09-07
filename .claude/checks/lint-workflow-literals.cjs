@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Verifica el invariante que `node --check` no puede ver en tasks-fanout.js:
-// que el prompt de cada llamada a agent() sea UN SOLO template literal.
+// que el prompt de cada llamada a agentP() sea UN SOLO template literal.
 //
 // Por qué existe: el archivo es casi todo prompts entre backticks. Un backtick de más
 // dentro de un prompt (escribir `covers` en vez de "covers", por ejemplo) NO rompe la
@@ -8,6 +8,12 @@
 // pasa a parsearse como expresiones. `assets/tasks-template.md` es división y resta
 // entre identificadores; `**Nota:**` es exponenciación. El archivo queda válido y el
 // prompt destruido, y recién falla en runtime con "assets is not defined".
+//
+// Por que agentP() y no agent(): los cinco sitios de prompt del workflow llaman al
+// helper agentP(), que resuelve el prefijo del plugin y recien ahi delega en agent().
+// Las llamadas a agent() que quedan viven DENTRO de ese helper y reciben el prompt en
+// una variable, no en un literal — mirarlas seria ruido. Lo que este linter cuida es el
+// sitio donde el prompt se escribe, y ese sitio ahora es agentP().
 //
 // Uso: node .claude/checks/lint-workflow-literals.cjs .claude/workflows/tasks-fanout.js
 
@@ -35,16 +41,18 @@ function closeOf(open) {
 const problems = []
 let checked = 0
 
-for (const m of src.matchAll(/\bagent\(/g)) {
+for (const m of src.matchAll(/\bagentP\(/g)) {
   // Saltear las menciones en comentarios: solo interesan las llamadas reales.
   const lineStart = src.lastIndexOf('\n', m.index) + 1
   const line = src.slice(lineStart, m.index)
   if (line.trimStart().startsWith('//') || line.trimStart().startsWith('*')) continue
+  // Y saltear la declaracion del propio helper, que matchea igual que una llamada.
+  if (/\bfunction\s*$/.test(line)) continue
 
   let i = m.index + m[0].length
   while (/\s/.test(src[i])) i++
   if (src[i] !== '`') {
-    problems.push(`offset ${m.index}: el prompt de agent() no arranca con un template literal`)
+    problems.push(`offset ${m.index}: el prompt de agentP() no arranca con un template literal`)
     continue
   }
   const close = closeOf(i)
@@ -66,7 +74,15 @@ for (const m of src.matchAll(/\bagent\(/g)) {
   checked++
 }
 
-console.log(`prompts de agent() verificados: ${checked}`)
+console.log(`prompts de agentP() verificados: ${checked}`)
+
+// Un linter que no encuentra nada que revisar pasa siempre, y eso es peor que fallar:
+// si alguien renombra el helper, este chequeo se vuelve decorativo sin avisar.
+if (checked === 0 && problems.length === 0) {
+  console.error('\nNo se encontro ninguna llamada a agentP(). O el archivo no es el workflow,')
+  console.error('o el helper cambio de nombre y este linter quedo mirando al vacio.')
+  process.exit(1)
+}
 if (problems.length) {
   console.error(`\n${problems.length} problema(s):\n`)
   for (const p of problems) console.error(`  - ${p}`)

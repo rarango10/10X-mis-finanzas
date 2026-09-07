@@ -1,6 +1,19 @@
 export const meta = {
   name: 'tasks-fanout',
   description: 'Crea o itera el tasks.md de cualquier spec aprobado con fan-out: scout unico, un revisor por tarea en paralelo, un reducer que resuelve conflictos y un unico escritor.',
+  // Un {title} por cada llamada a phase(), matcheado EXACTO. Por eso los titulos son
+  // estaticos: meta tiene que ser un literal puro, asi que un titulo interpolado con
+  // ${...} no puede matchear nunca y la fase desaparece de la vista de progreso sin
+  // ningun error. Lo que varia por corrida va en el label; lo que estructura el
+  // workflow va en el title.
+  phases: [
+    { title: 'Reconocimiento del spec' },
+    { title: 'Plan inicial desde cero' },
+    { title: 'Revision de tareas' },
+    { title: 'Reduccion' },
+    { title: 'Chequeo de consistencia' },
+    { title: 'Escritura de tasks.md' },
+  ],
 }
 
 // ---------------------------------------------------------------------------
@@ -35,7 +48,37 @@ export const meta = {
 // (task-writer) puede escribir. Si agregas una llamada a agent(), declarale un agentType
 // de solo lectura: una llamada sin agentType hereda el toolset completo, incluido Write,
 // y reintroduce el segundo escritor que esta arquitectura existe para evitar.
+//
+// NOMBRES DE AGENTE: cuando este workflow corre desde un plugin, sus agentes NO se
+// registran con el nombre pelado sino namespaceados -- 'mi-harness:spec-scout' en vez
+// de 'spec-scout' -- y las cinco llamadas fallan. El helper agentP() de abajo resuelve
+// ese prefijo UNA vez, leyendolo del propio mensaje de error, y lo reusa. Descubrirlo
+// en vez de asumirlo es lo que hace que renombrar el plugin no rompa el script.
 // ---------------------------------------------------------------------------
+
+// Prefijo del plugin, descubierto en la primera llamada. null = todavia no se sabe;
+// '' = el nombre pelado resolvio (el harness vive en el proyecto, no en un plugin).
+let AGENT_PREFIX = null
+
+async function agentP(prompt, opts) {
+  const base = opts.agentType
+  if (AGENT_PREFIX !== null) {
+    return agent(prompt, { ...opts, agentType: AGENT_PREFIX + base })
+  }
+  try {
+    const out = await agent(prompt, opts)
+    AGENT_PREFIX = ''
+    return out
+  } catch (e) {
+    const listed = String((e && e.message) || e).match(/Available agents:\s*(.+)/)
+    if (!listed) throw e
+    const hit = listed[1].split(/[,\s]+/).find((n) => n.endsWith(':' + base))
+    if (!hit) throw e
+    AGENT_PREFIX = hit.slice(0, hit.length - base.length)
+    log(`Agentes namespaceados por el plugin: se usa el prefijo "${AGENT_PREFIX}".`)
+    return agent(prompt, { ...opts, agentType: AGENT_PREFIX + base })
+  }
+}
 
 const input =
   typeof args === 'undefined' || args === null || args === ''
@@ -223,7 +266,7 @@ const summarize = (t) =>
 
 phase('Reconocimiento del spec')
 
-const scout = await agent(
+const scout = await agentP(
   `${SPEC_DIR_HINT
     ? `Carpeta del spec: ${SPEC_DIR_HINT}.`
     : `No te dieron carpeta de spec. Buscá bajo docs/ la carpeta con formato AAAA-MM-DD-<feature> más reciente que tenga requirements.md, y usá esa.`}
@@ -298,7 +341,7 @@ if (!scout.tasksExist || plan.length === 0) {
   phase('Plan inicial desde cero')
   log('No hay tasks.md: se dibuja el plan inicial y después entra al mismo loop iterativo.')
 
-  const draft = await agent(
+  const draft = await agentP(
     `${SHARED}
 
 Todavía no existe tasks.md. Dibujá el plan inicial COMPLETO de tareas para esta feature,
@@ -356,7 +399,8 @@ while (queue.length > 0 && round < MAX_ROUNDS) {
     queue = []
     break
   }
-  phase(`Ronda ${round}: revisión de ${toReview.length} tarea(s)`)
+  phase('Revision de tareas')
+  log(`Ronda ${round}: revisando ${toReview.length} tarea(s).`)
 
   const tableForReviewers = plan.map(summarize).join('\n')
 
@@ -364,7 +408,7 @@ while (queue.length > 0 && round < MAX_ROUNDS) {
   // para poder resolver merges cruzados, splits que se superponen y numeracion nueva.
   const verdicts = await parallel(
     toReview.map((task) => () =>
-      agent(
+      agentP(
         `${SHARED}
 
 Plan completo actual (contexto — NO lo revises entero):
@@ -385,8 +429,8 @@ es "ok".`,
           schema: VERDICT_SCHEMA,
           model: 'sonnet',
           agentType: 'task-reviewer',
-          label: task.id,
-          phase: `Ronda ${round}: revisión`,
+          label: `${task.id} · ronda ${round}`,
+          phase: 'Revision de tareas',
         },
       ),
     ),
@@ -418,7 +462,7 @@ es "ok".`,
   }
 
   // Reducer: el unico que ve el plan entero y todos los veredictos juntos.
-  const reduced = await agent(
+  const reduced = await agentP(
     `${SHARED}
 
 Sos el reducer del plan de tareas. Recibís el plan actual y los veredictos de revisores que
@@ -456,7 +500,7 @@ Devolvé el plan COMPLETO y ordenado (todas las tareas, no solo las que cambiaro
 de lo que hiciste con cada tarea revisada, y los huecos de spec acumulados.
 
 No escribas ningún archivo. Devolvé solo el JSON.`,
-    { schema: PLAN_SCHEMA, agentType: 'plan-reducer', model: 'opus', label: `reducer ronda ${round}`, phase: `Ronda ${round}: reducción` },
+    { schema: PLAN_SCHEMA, agentType: 'plan-reducer', model: 'opus', label: `reducer ronda ${round}`, phase: 'Reduccion' },
   )
   agentsSpent++
 
@@ -515,7 +559,7 @@ if (finalDupes.length) log(`Quedan ids duplicados: ${finalDupes.join(', ')}`)
 
 phase('Escritura de tasks.md')
 
-const written = await agent(
+const written = await agentP(
   `Carpeta del spec: ${specDir}.
 
 Escribí ${specDir}/tasks.md con esta tabla de Plan final. Es la fuente de verdad: no agregues,
