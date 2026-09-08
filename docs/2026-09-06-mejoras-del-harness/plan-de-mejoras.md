@@ -441,3 +441,27 @@ diseño y cero pruebas.
 No se borra nada al implementar. Cada lección resuelta se marca `resuelto` con su commit: saber por
 qué se hizo algo vale tanto como el cambio, y varias entradas ya sirvieron para no repetir un análisis
 o para corregir una conclusión equivocada.
+
+---
+
+## Cierre
+
+> **Este documento es insumo consumido, no un registro de estado.** El cuerpo de arriba está en
+> futuro («agregar un paso», «va en `specify`») porque así se escribió: **no lo leas como un to-do**.
+> Qué está hecho y qué queda se lee en el **índice de estado** al tope de
+> [`lecciones.md`](../../lecciones.md); el detalle de cada lote, en sus secciones «Lote N aplicado».
+
+**Lo único que este documento puede aportar todavía es cuánto le erró, para el próximo plan.** Le
+erró en dos formas: cosas que no existían para él (L35 y el chequeo de deriva mal formado; que el
+resync habría empaquetado `skill-creator`; que la pata e2e del comando de higiene no corre en este
+repo) y cosas que tenía escritas y estaban mal (daba L13 por problema del demo; daba el Lote 7 por
+trámite cuando el README estaba desfasado en seis lugares; tenía al revés la línea de la prueba de
+ruteo; sostenía [[L9]] sobre-generalizada y [[L29]] sobrevendida).
+
+**El patrón es uno solo: nada de eso se podía ver leyendo.** Apareció al editar, al escribir el
+reemplazo, al **correr el comando** —los dos archivos que había que leer decían que funcionaba— y al
+mirar cuatro líneas de frontmatter que estaban a un `grep` de distancia. Es la misma forma que este
+plan ya había identificado en su origen —«ninguna de las 34 lecciones se habría encontrado leyendo
+los archivos»—, cumplida esta vez sobre el plan mismo. Para el próximo: presupuestar que una parte
+del trabajo son cosas que no están planificadas y que aparecen al ejecutar. No es un defecto de este
+plan; es la propiedad del terreno.

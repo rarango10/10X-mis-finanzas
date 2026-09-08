@@ -5,11 +5,78 @@ Bitácora de lo que aprendemos usando el harness, para no perderlo entre sesione
 resuelto con el commit, no se borra: saber por qué se hizo algo vale tanto como el cambio.
 
 Estados: `abierto` (falta decidir el arreglo) · `en observación` (sabemos que pasa, falta decidir
-si se toca) · **`listo para aplicar`** (el arreglo está escrito acá, solo falta hacerlo) · `resuelto`.
+si se toca) · **`listo para aplicar`** (el arreglo está escrito acá, solo falta hacerlo) ·
+`resuelto` · **`límite asumido`** (el análisis está cerrado y la conclusión fue no tocar nada — no
+es un pendiente, y reabrirlo cuesta repetir el análisis).
 
 > **No aplicar nada mientras haya una prueba del harness en curso.** Cambiar un skill o el workflow
 > a mitad de una corrida invalida el resultado: después no se puede distinguir qué causó qué. Los
 > arreglos `listo para aplicar` se juntan y se hacen todos al terminar el recorrido.
+
+---
+
+## Índice de estado
+
+**Esta tabla es el registro durable de qué está hecho y qué no.** Es lo que hay que leer para
+saberlo, y no hay que buscarlo en ningún otro lado — misma función que la columna `Estado` de un
+`tasks.md`, y por la misma razón. Cada fila enlaza a su entrada, que tiene el análisis completo; las
+secciones **«Lote N aplicado»** del final cuentan qué se cambió y qué apareció al cambiarlo.
+
+| # | Qué | Estado | Dónde aterrizó |
+|---|-----|--------|----------------|
+| L1 | `CLAUDE.md` no tenía productor | `resuelto` | Lote 6 · skill `harness-init` |
+| L2 | La precarga `skills:` adentro de un plugin | `resuelto` | verificado, sin cambios |
+| L3 | `plugin details` miente por omisión | `resuelto` | Lote 7 · `README.md` |
+| L4 | Los workflows de un plugin van namespaceados | `resuelto` | previo · `planning-tasks` |
+| L5 | Para workflows no hay shadowing | `resuelto` | Lote 7 · `README.md` |
+| L6 | El MCP de Playwright elegiría mejores selectores | `abierto` | segunda ronda |
+| L7 | El ciclo e2e nunca había corrido entero | `resuelto` | corrió en el demo · README en Lote 7 |
+| L8 | Las compuertas son instrucciones, no mecanismos | **`límite asumido`** | análisis cerrado |
+| L9 | Solo-lectura: ¿conducta o impedimento? | `abierto` | acotada a `dod-checker` y `spec-scout` |
+| L10 | Re-planificar desaprobaba un plan intacto | `resuelto` | Lote 1 · `task-writer` |
+| L11 | El próximo id libre se podía reutilizar | `resuelto` | Lote 1 · `tasks-fanout.js` + `spec-scout` |
+| L12 | Un test que pasa no prueba lo que dice probar | `abierto` | segunda ronda — **L29 le dejó el lever** |
+| L13 | Corrección y estilo conflacionados | `resuelto` | Lote 5b · `CLAUDE.md` + Lote 6 · plantilla |
+| L14 | `CLAUDE.md` invadió territorio del `design.md` | `resuelto` | Lote 6 · plantilla sin «Estructura» |
+| L15 | Decidió el stack sin preguntar | `resuelto` | Lote 4 · vía L16 y L17 |
+| L16 | Ritmo de preguntas sin condición de corte | `resuelto` | Lote 4 · `brainstorming` |
+| L17 | Devolvió una decisión propia como si fuera tuya | `resuelto` | Lote 4 · `brainstorming` |
+| L18 | El paso siguiente se nombraba después del sí | `resuelto` | Lote 3 · `specify` + Lote 4 · `brainstorming` |
+| L19 | Los `agentType` también vienen namespaceados | `resuelto` | Lote 1 · `tasks-fanout.js` |
+| L20 | Sin `meta.phases`, y títulos que no podían matchear | `resuelto` | Lote 1 · `tasks-fanout.js` |
+| L21 | El encabezado `Estado` sin dueño después del sí | `resuelto` | Lote 3 · `specify` + Lote 5 · `implement-task` |
+| L22 | Qué se le puede contar a `dod-checker` | `resuelto` | Lote 2 · `dod-checker` + Lote 5 · lado del llamador |
+| L23 | Sin regla de corte cuando la verificación falla | `resuelto` | Lote 2 · `dod-checker` |
+| L24 | No restaba las dependencias contra `CLAUDE.md` | `resuelto` | Lote 2 · `dod-checker` |
+| L25 | No puede vivir en una carpeta sincronizada | `resuelto` | Lote 7 · `README.md` |
+| L26 | Un veredicto superado sin convención | `resuelto` | Lote 3 · `tasks-template.md` |
+| L27 | `Cubre` no distingue satisfacer de habilitar | `resuelto` | Lote 2 + Lote 3 · `specify` y `plan-reducer` |
+| L28 | La compuerta del paso 5 sin granularidad definida | `resuelto` | Lote 5 · `implement-task` |
+| L29 | La evidencia del TDD es prosa autorreportada | **`resuelto parcialmente`** | Lote 5 · commit por tarea. **El orden sigue sin verificarse** |
+| L30 | La implementación sin instrucción de cierre | `resuelto` | Lote 5 · `implement-task` |
+| L31 | «Un criterio, un comportamiento» sin quien la cumpla | `resuelto` | Lote 3 · `specify` + `check_specs.py` |
+| L32 | No distinguía su config de lo que le mandaron | `resuelto` | Lote 2 · `dod-checker` |
+| L33 | Un veredicto vale solo para el estado en que se tomó | `resuelto` | Lote 5b · `close-feature` |
+| L34 | Razonó su frontera mejor de lo que se le pidió | `resuelto` | evidencia positiva, sin acción |
+| L35 | Dos archivos del plugin sin fuente en el repo | `resuelto` | Lote 5 · `plugin-root/` + `sync-plugin.sh` |
+
+### Lo que queda, que son cuatro cosas y no la misma clase
+
+- **[[L12]] primero.** Es la de mejor relación valor/costo, y quedó **a un paso**: el commit por
+  tarea del Lote 5 creó el diff que le faltaba, y `dod-checker` ya tiene `Bash` con `git log`
+  autorizado. Le falta un paso de procedimiento que le diga que mire el diff de la tarea en vez del
+  estado final, más ampliar esa autorización a `git show` / `git diff`.
+- **[[L9]]** — no implementar todavía: falta confirmar si un hook `PreToolUse` puede distinguir qué
+  subagente hace la llamada. Sin eso, un `permissions.deny` sobre patrones de escritura en Bash es
+  frágil.
+- **[[L6]]** — cuando el ciclo e2e tenga un fallo real que diagnosticar. Antes no hay con qué medir
+  si mejora, porque el writer ya elige bien los selectores sin ayuda.
+- **[[L8]]** — cerrada. No reabrir salvo que aparezca un borde de tool-call que signifique
+  «aprobado».
+
+Y una tarea que no es una lección: **la corrida final de verificación** —rehacer el demo desde una
+carpeta vacía con el harness nuevo, con la prueba de ruteo plegada adentro—, que vive en la sección
+«Verificación» de [`plan-de-mejoras.md`](docs/2026-09-06-mejoras-del-harness/plan-de-mejoras.md).
 
 ---
 
@@ -202,7 +269,7 @@ diseño y todavía cero pruebas. Se ejercitaría sola la primera vez que un e2e 
 
 ---
 
-## L8 · Las compuertas son instrucciones, no mecanismos · `en observación`
+## L8 · Las compuertas son instrucciones, no mecanismos · `límite asumido`
 
 **Qué pasó.** Vale para las cuatro compuertas fijas del ciclo y para las tres configurables del e2e.
 Nada impide que un modelo saltee una compuerta activa, ni que `--modo autonomo` apague más de lo
