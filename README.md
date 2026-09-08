@@ -419,11 +419,13 @@ completa y viva, con lo que habría que hacer en cada caso, está en
   serían dos commits por tarea, rojo y verde, y está descartada porque un commit en rojo contradice
   que cada tarea deje el repo funcionando. La afirmación más central del método es la única sin
   verificación independiente.
-- **Que los agentes de solo lectura no escriban es conducta, no impedimento.** Se mide con un
-  manifiesto de hashes del working tree antes y después de cada corrida, y hasta ahora dio
-  limpio. Pero a todos se les dice además que no escriban, así que lo comprobado es que nadie
-  quiso, no que no hubiera podido. Convertirlo en garantía pide un `permissions.deny` o un hook
-  `PreToolUse`.
+- **En dos agentes, no escribir es conducta y no impedimento.** `task-reviewer` y `plan-reducer`
+  declaran `tools: Read, Grep, Glob`, así que no tienen ninguna ruta de escritura: ahí la
+  restricción es un mecanismo. `dod-checker` y `spec-scout` tienen además `Bash`, que sí puede
+  escribir, y en esos dos la prohibición vive en la prosa. Se mide con un manifiesto de hashes del
+  working tree antes y después de cada corrida y hasta ahora dio limpio, pero lo comprobado es que
+  nadie quiso, no que no hubiera podido. Convertirlo en garantía pide acotar `Bash` en esos dos —
+  con un `permissions.deny` o un hook `PreToolUse`.
 - **Las compuertas son instrucciones, no mecanismos.** Vale para las fijas y para las
   configurables del ciclo e2e.
 

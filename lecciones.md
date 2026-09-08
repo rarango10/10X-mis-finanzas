@@ -218,7 +218,7 @@ aprobado».
 
 ---
 
-## L9 · Que los agentes de solo lectura no escriban es conducta, no impedimento · `abierto`
+## L9 · Que los agentes de solo lectura no escriban es conducta, no impedimento · `abierto` — acotada a dos agentes
 
 **Qué pasó.** Se mide con un manifiesto de hashes del working tree antes y después de cada corrida
 —nunca preguntándole a un agente qué herramientas cree tener— y hasta ahora dio limpio. Pero a todos
@@ -226,6 +226,39 @@ se les dice además que no escriban, así que lo comprobado es que nadie quiso, 
 podido.
 
 **Qué habría que hacer.** Un `permissions.deny` o un hook `PreToolUse` que lo convierta en garantía.
+
+**Corrección (2026-09-07): «a todos» era falso, y la lección estaba sobre-generalizada.** Al revisar
+los `tools:` declarados en el frontmatter de cada agente aparece que **la mitad sí está impedida de
+verdad**:
+
+| Agente | `tools:` declarados | ¿Conducta o mecanismo? |
+|---|---|---|
+| `task-reviewer` | `Read, Grep, Glob` | **Mecanismo.** No tiene ninguna herramienta capaz de escribir |
+| `plan-reducer` | `Read, Grep, Glob` | **Mecanismo.** Idem |
+| `dod-checker` | `Read, Grep, Glob, Bash` | **Conducta.** `Bash` puede escribir |
+| `spec-scout` | `Read, Grep, Glob, Bash` | **Conducta.** Idem |
+
+`tools:` es una lista de permitidos, no una sugerencia: sin `Write` ni `Edit` ni `Bash` no hay ruta
+de escritura, por mucho que el agente quiera. Confirmado además contra el listado de subagentes que
+expone la propia sesión, que reporta `plan-reducer (Tools: Read, Grep, Glob)` — o sea que no es solo
+lo que dice el archivo, es lo que el cargador efectivamente registró.
+
+**Dónde queda el hueco real, entonces.** En los dos que tienen `Bash`, donde la prohibición vive en
+la prosa: «Nada de redirecciones, `>`, `>>`, `tee`, `sed -i`, ni ningún comando que deje un cambio en
+el repo». Ahí sí es conducta, y ahí sí sigue abierta.
+
+**Eso abarata el arreglo y cambia su forma.** No hace falta una capa de enforcement general para
+cuatro agentes: hace falta **acotar `Bash` en dos**. Lo que falta confirmar antes de intentarlo es si
+un hook `PreToolUse` puede distinguir **qué subagente** hace la llamada — sin eso, un
+`permissions.deny` sobre patrones de escritura en Bash es frágil, porque hay muchas formas de
+escribir un archivo y la lista nunca está completa.
+
+**La moraleja de método, que es por qué esto se registra en vez de solo corregirse.** La entrada
+original afirmaba una propiedad sobre «los agentes de solo lectura» **sin haber mirado sus
+frontmatter**: se dedujo del hecho de que a todos se les dice que no escriban. Es el mismo error de
+forma que [[L22]] —auditar el relato en vez del repo— aplicado a nuestra propia documentación. Un
+dato que estaba a un `grep` de distancia sostuvo durante semanas una conclusión más pesimista que la
+realidad.
 
 ---
 
