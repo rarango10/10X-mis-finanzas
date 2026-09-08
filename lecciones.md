@@ -59,6 +59,9 @@ secciones **«Lote N aplicado»** del final cuentan qué se cambió y qué apare
 | L33 | Un veredicto vale solo para el estado en que se tomó | `resuelto` | Lote 5b · `close-feature` |
 | L34 | Razonó su frontera mejor de lo que se le pidió | `resuelto` | evidencia positiva, sin acción |
 | L35 | Dos archivos del plugin sin fuente en el repo | `resuelto` | Lote 5 · `plugin-root/` + `sync-plugin.sh` |
+| L36 | El progreso del workflow existía y ningún paso lo nombraba | **`listo para aplicar`** | el arreglo está escrito en la entrada |
+| L37 | Un slash command que no resuelve no da error: improvisa | `abierto` | falta confirmar qué lista `/` en el demo |
+| L38 | «Preguntá y esperá el sí» se tradujo a una pregunta estructurada inválida | `en observación` | fricción, se recuperó solo |
 
 ### Lo que queda, que son cuatro cosas y no la misma clase
 
@@ -1282,6 +1285,138 @@ es justo la proporción que lo vuelve invisible. Lo que falló no fue la regla: 
 tenía la misma forma que la regla —una lista de lugares— en vez de la forma contraria —una búsqueda
 de lo que no está previsto—. Una verificación construida a imagen de lo que verifica solo puede
 encontrar los errores que ya se imaginaron.
+
+---
+
+## L36 · El progreso del workflow existía y ningún paso lo nombraba · `listo para aplicar`
+
+**Qué pasó.** En la corrida de `tasks-fanout` sobre `calculadora-operaciones` (demo, 2026-09-07) la
+persona esperó **8 minutos y 19 segundos** sin ninguna señal de qué estaba pasando. `planning-tasks`
+lanzó el workflow y dijo «te aviso cuando termine».
+
+**Y el progreso existía todo el tiempo.** El script llama a `log()` en 16 lugares; esa corrida emitió
+seis:
+
+```
+Agentes namespaceados por el plugin: se usa el prefijo "harness-spike:".
+Spec: docs/2026-09-07-calculadora-operaciones — 12 criterios, 0 tareas existentes
+No hay tasks.md: se dibuja el plan inicial y después entra al mismo loop iterativo.
+Plan inicial: 9 tareas. Ninguna revisada todavía — entran todas al fan-out.
+Ronda 1: revisando 9 tarea(s).
+Ronda 1: 9 veredictos — 9 ok, 0 con cambios, 0 propuesta(s), 0 criterio(s) sin cubrir.
+```
+
+Más `agentCount: 13`, `durationMs`, `status` y las seis fases declaradas, todo en
+`~/.claude/projects/<proyecto>/<sesión>/workflows/wf_<runId>.json` — que es lo que **`/workflows`
+renderiza en vivo**.
+
+**Lo peor: el tool lo dijo y la sesión no lo transmitió.** La salida del lanzamiento termina,
+textualmente, con `Use /workflows to watch live progress.` El modelo la leyó y la descartó al
+resumir. La información no faltaba: se perdió en la traducción.
+
+**Por qué importa, y por qué no es cosmético.** Una espera de ocho minutos sin señal empuja a la
+persona a hacer justo lo que no hay que hacer: abrir el repo a mirar qué pasa. Eso es [[L30]] —
+*leer un proyecto mientras otra sesión trabaja da instantáneas, no conclusiones*—, que ya fabricó un
+hallazgo falso una vez.
+
+**Es la misma forma que [[L20]], un escalón más arriba.** L20 era «la vista de `/workflows` no tiene
+contra qué mostrar avance». Lo arreglamos: ahora tiene seis fases y seis mensajes. Y quedó una vista
+útil **que ningún paso del ciclo nombra**. Arreglar el mecanismo y no nombrarlo deja el mismo
+resultado observable que no haberlo arreglado.
+
+### El arreglo, listo para ejecutar
+
+En `planning-tasks`, **paso 3**, agregar el reporte como paso y no como intención — el patrón de
+[[L24]], porque una instrucción implícita se saltea:
+
+> **Al confirmar el lanzamiento, decí estas tres cosas y ninguna menos:**
+>
+> - Que quedó corriendo, con su `Task ID`.
+> - **`/workflows` para ver el avance en vivo.** El fan-out lanza un agente por tarea y la corrida
+>   puede tomar varios minutos; sin esta línea la persona espera a ciegas, y esperar a ciegas la
+>   empuja a abrir el repo a mirar, que es lo que [[L30]] desaconseja.
+> - La forma del fan-out: 1 scout + 1 plan inicial + 1 revisor por tarea + 1 reducer por ronda con
+>   cambios + 1 escritor. **El número exacto no se puede anticipar en la primera corrida** —el plan
+>   lo dibuja el propio workflow— pero la forma sí, y alcanza para dimensionar la espera.
+
+Y un refuerzo independiente, en el mismo skill: **al llegar la notificación de fin**, leer
+`workflows/wf_<runId>.json` y reportar `agentCount`, duración y los `logs`. Así, si el puntero se
+pierde al lanzar, la información igual llega al final. Dos oportunidades, las dos baratas.
+
+**Lo que se evaluó y se descartó por ahora.** Un hook `PostToolUse` sobre el tool `Workflow` daría
+**garantía** en vez de alta probabilidad, y podría viajar dentro del plugin. Se descartó por
+desproporción: sería el primer mecanismo del harness, introducido por una línea informativa, mientras
+las compuertas que de verdad protegen el `hecho` siguen siendo prosa. **Si el arreglo de arriba falla
+igual, eso es evidencia para reabrir [[L8]]**, no para insistir con más prosa.
+
+**Y refina [[L8]] aunque no se implemente.** L8 dice que el enforcement por hooks no mapea «porque no
+hay borde de tool-call que signifique *el plan fue aprobado*». Cierto para actos conversacionales, y
+**falso para esto**: el retorno del tool `Workflow` es un borde de tool-call exacto. L8 vale sobre
+aprobaciones, no sobre cualquier cosa anclada a una herramienta.
+
+---
+
+## L37 · Un slash command que no resuelve no da error: improvisa · `abierto`
+
+**Qué pasó.** En el demo (2026-09-07) se invocó `/harness-init` y **el skill no corrió**. La sesión
+listó el repo, leyó `tasks.md` y `e2e-test-report.md`, concluyó que el ciclo estaba completo y ofreció
+arrancar una feature nueva. **Nunca leyó `CLAUDE.md`**, que es el único objeto de ese skill, y no hizo
+ninguna de las cuatro comprobaciones de su modo revisión.
+
+**La causa probable.** El demo no tiene `.claude/` local, así que el único nombre registrado es
+`harness-spike:harness-init`. El pelado no resuelve — y **un slash command que no resuelve queda como
+texto**: el modelo lee «harness-init» como «inicializá el harness acá» y produce algo plausible.
+
+Evidencia lateral fuerte en la misma sesión: al lanzar el workflow, el nombre pelado devolvió
+`Workflow "tasks-fanout" not found. Available: deep-research, harness-spike:tasks-fanout`. El
+namespacing está activo ahí, confirmado.
+
+**Es la cuarta superficie del mismo problema, y la única silenciosa.** [[L4]] (el nombre del
+workflow), [[L19]] (los `agentType`) y [[L5]] (dos copias vivas) se arreglaron todas **leyendo el
+prefijo del mensaje de error**. Acá no hay mensaje que leer, porque quien invoca es una persona y no
+un tool call. No hay nada que capturar ni de dónde descubrir el prefijo.
+
+**El daño no fue solo no hacer lo pedido.** La respuesta afirmó que *«el ciclo ya recorrió sus ocho
+pasos para esta feature»*. Es falso: el paso 8 es `close-feature`, que **no existía** cuando se hizo
+esa corrida, y los dos commits se hicieron a mano sin corrida de higiene como compuerta. Inventó un
+cierre que nunca ocurrió — la misma clase de fallo que [[L17]].
+
+**Qué falta para cerrarla.** Confirmar en el demo qué lista `/`: si aparece
+`harness-spike:harness-init` o `harness-init`. Distingue esta hipótesis de la otra posible —que la
+sesión se haya abierto antes de actualizar el plugin y haya cargado una versión sin ese skill—, y las
+dos se arreglan distinto.
+
+**Qué habría que hacer, si se confirma.** No es código: es documentación y hábito.
+
+- Que el `README.md` y el router digan **cómo se invocan los skills de un plugin**
+  (`/<plugin>:<skill>`), y que el nombre pelado solo funciona si el skill vive en el repo.
+- **Preferir los disparadores en lenguaje natural.** La columna «Se pide diciendo» de la tabla del
+  router existe para esto: «preparemos el proyecto» dispara por la `description` y **sobrevive al
+  namespacing**; `/harness-init` no. Esa columna dejó de ser una comodidad y pasó a ser el camino
+  robusto.
+
+---
+
+## L38 · «Preguntá y esperá el sí» se tradujo a una pregunta estructurada inválida · `en observación`
+
+**Qué pasó.** En el demo (2026-09-07), `planning-tasks` llegó a su paso 2 y el modelo formuló la
+confirmación con `AskUserQuestion` y **una sola opción**. El harness la rechazó
+(`too_small · minimum: 2`) y la persona nunca vio la pregunta.
+
+**Se recuperó bien, y eso importa.** El mensaje de error le dijo qué hacer —enunciar el único camino
+y seguir— y eso hizo: «Lanzo el workflow tasks-fanout sobre docs/…». Costó un intento, no una ronda.
+
+**Por qué se anota igual.** El skill dice *«Preguntá… Esperá el sí. Una confirmación corta ("dale",
+"va") alcanza»*. Eso describe una confirmación **en prosa**, y el modelo alcanzó una herramienta que
+exige dos opciones distintas. Una confirmación no es una decisión: no hay dos caminos que ofrecer, y
+por eso el tool la rechaza por diseño.
+
+**Qué habría que hacer.** Una cláusula en el paso 2 de `planning-tasks`: la confirmación va **en
+prosa**, no con una pregunta estructurada — pedir un sí no es ofrecer una elección. Es una línea, y
+evita un intento perdido en cada corrida.
+
+**Por qué queda en `en observación` y no en `listo para aplicar`.** Una sola ocurrencia, con
+recuperación limpia y costo casi nulo. Si vuelve a pasar en la próxima corrida deja de ser anécdota.
 
 ---
 
