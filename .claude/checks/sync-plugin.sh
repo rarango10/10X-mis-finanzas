@@ -11,6 +11,10 @@
 # archivos del plugin que no tenían fuente en el repo (L35): un chequeo que enumera lo que conoce
 # nunca encuentra lo que no está en su lista.
 #
+# Desde que `.claude/` ES el plugin (se instala por el marketplace de la raíz del repo), este
+# script es solo el ciclo de desarrollo de quien edita el harness: refleja `.claude/` en una copia
+# que Claude Code auto-carga, sin pasar por `claude plugin update` en cada cambio.
+#
 # Uso:  bash .claude/checks/sync-plugin.sh [ruta-del-plugin]
 
 set -euo pipefail
@@ -21,7 +25,9 @@ PLUGIN="${1:-$HOME/.claude/skills/harness-spike}"
 # Skills que viven en el repo pero NO son del harness: herramientas de autoría vendoreadas.
 # Es una lista de exclusión y no de inclusión a propósito — así un skill nuevo del harness entra
 # solo, en vez de que alguien tenga que acordarse de agregarlo a una lista.
-NO_EMPAQUETAR=(skill-creator)
+# Hoy está vacía: `skill-creator` vivía acá y se sacó del repo, porque se instala desde el
+# marketplace oficial. El mecanismo queda para el próximo skill vendoreado.
+NO_EMPAQUETAR=()
 
 [ -d "$PLUGIN" ] || { echo "✗ no existe el plugin en $PLUGIN"; exit 1; }
 
@@ -29,7 +35,8 @@ NO_EMPAQUETAR=(skill-creator)
 
 esta_excluido() {
   local nombre="$1" x
-  for x in "${NO_EMPAQUETAR[@]}"; do
+  # La forma ${a[@]+"${a[@]}"} evita el "unbound variable" de bash 3.2 con set -u y lista vacía.
+  for x in ${NO_EMPAQUETAR[@]+"${NO_EMPAQUETAR[@]}"}; do
     if [ "$nombre" = "$x" ]; then return 0; fi
   done
   return 1
@@ -47,8 +54,8 @@ done
 cp "$REPO"/.claude/agents/*.md          "$PLUGIN/agents/"
 cp "$REPO"/.claude/workflows/*.js       "$PLUGIN/workflows/"
 cp "$REPO"/.claude/checks/*             "$PLUGIN/checks/"
-cp "$REPO"/.claude/plugin-root/SKILL.md "$PLUGIN/"
-cp "$REPO"/.claude/plugin-root/.claude-plugin/plugin.json "$PLUGIN/.claude-plugin/"
+cp "$REPO"/.claude/SKILL.md "$PLUGIN/"
+cp "$REPO"/.claude/.claude-plugin/plugin.json "$PLUGIN/.claude-plugin/"
 
 # ------------------------------------------------------- verificar el árbol
 
