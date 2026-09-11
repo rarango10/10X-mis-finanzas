@@ -68,6 +68,7 @@ secciones **«Lote N aplicado»** del final cuentan qué se cambió y qué apare
 | L41 | Los pasos 0 a 3 no commitean | `en observación` | una ocurrencia, sin daño |
 | L42 | Una regla vive en `CLAUDE.md` y en la plantilla, sin verificación | `en observación` | se vuelve urgente al aplicar L40 |
 | L43 | Un skill extendió un principio escrito más allá de la lista | `resuelto` | evidencia positiva, sin acción |
+| L44 | Dos plugins con el mismo nombre no conviven: uno se apaga en silencio | `resuelto` | documentado en el README, al forkear |
 
 ### Lo que queda
 
@@ -1648,6 +1649,32 @@ Eso quedó en [[L39]].
 
 ---
 
+## L44 · Dos plugins con el mismo nombre no conviven, y el que pierde se apaga en silencio · `resuelto` — documentado
+
+**Qué pasó.** Al probar la instalación del harness desde su propio marketplace (2026-09-11), en una
+carpeta descartable y con scope local, `claude plugin list` mostró la copia de desarrollo así:
+
+```
+harness-spike@skills-dir · enabled: false
+"Not loaded — the name "harness-spike" is already taken by an installed plugin
+(harness-spike@harness-spike), which takes precedence."
+```
+
+Mientras la instalación existió, la copia que `sync-plugin.sh` mantiene en `~/.claude/skills/`
+quedó **desactivada**. Al desinstalar volvió sola, activa y sin errores.
+
+**Por qué importa.** Nada avisa en la sesión: los skills siguen apareciendo con el mismo nombre, pero
+son los de la otra copia. Quien edita el harness con el script de desarrollo y además tiene instalada
+la versión publicada puede pasar horas probando cambios que la sesión no está cargando — la misma
+familia que [[L5]], donde dos copias del workflow conviven con nombres distintos. Acá es al revés:
+el nombre es el mismo, así que no conviven, y la que pierde no hace ruido.
+
+**Qué se hizo.** Documentarlo donde muerde: el README pide **renombrar el plugin al forkear** —con la
+razón— y advierte que la copia de desarrollo y una instalación con el mismo nombre no cargan juntas.
+Es comportamiento de Claude Code, no del harness; no hay nada que arreglar en el código.
+
+---
+
 ## Lote 1 aplicado — 2026-09-07
 
 L19, L20, L11 y L10 resueltas en los commits `2ca3589` (L19+L20) y el siguiente (L11+L10).
@@ -2062,6 +2089,45 @@ transcript. Con la corrección de [[L9]] y el conteo de agentes de [[L36]], son 
 dos días contradichas por un dato que estaba a un `grep` de distancia. La regla que se desprende es
 la misma que el harness le impone a `dod-checker`: **las afirmaciones sobre qué pasó se contrastan
 contra el registro, no contra el relato de quien lo cuenta** — y eso vale también para quien analiza.
+
+## Empaquetado como semilla — 2026-09-11
+
+El repo pasó a ser la semilla pública del harness. Hasta hoy era público pero **no se podía usar**:
+no tenía licencia —así que nadie podía reutilizarlo legalmente— ni marketplace, y el árbol del plugin
+lo armaba `sync-plugin.sh` en la máquina del autor.
+
+**`.claude/` es el plugin.** `plugin-root/` se disolvió: el manifiesto pasó a
+`.claude/.claude-plugin/plugin.json` y el router a `.claude/SKILL.md`, que es donde un plugin los
+busca. La alternativa descartada era commitear el árbol que arma `sync-plugin.sh`, y habría
+reintroducido dos copias de cada archivo, que es lo que [[L35]] y [[L5]] enseñan a no hacer. Así hay
+una sola.
+
+**El repo es su propio marketplace**: `.claude-plugin/marketplace.json` en la raíz, con
+`"source": "./.claude"`. No es un invento: 52 plugins del marketplace oficial usan el mismo mecanismo
+de path relativo.
+
+**Salió `skill-creator`.** Estaba vendoreado en `.claude/skills/`, y con `.claude/` convertido en el
+plugin se habría publicado como parte del harness. Se instala desde el marketplace oficial.
+
+**Licencia Apache-2.0**, con el texto canónico en `LICENSE` y el copyright en `NOTICE`.
+
+**Cómo se verificó**, porque que el manifiesto valide no prueba que se instale: `validate --strict`
+sobre el marketplace y sobre el plugin, y después **una instalación real** desde el path local, en una
+carpeta descartable y con scope local. Quedó la versión 0.2.0 con los 7 skills, los 7 agentes y el
+workflow, sin `skill-creator`; la copia instalada pasó `validate --strict`, y la desinstalación no
+dejó rastro. La incógnita era si `./.claude` resolvía siendo un directorio oculto. Resolvió.
+
+### Lo que apareció al hacerlo
+
+**[[L44]]**: dos plugins con el mismo nombre no conviven, y el que pierde se apaga en silencio.
+
+**[[L25]], otra vez, y en el lugar más incómodo.** Después de borrar y mover decenas de archivos, la
+suite de tests quedó colgada más de dos minutos, con siete workers de vitest vivos. Este repo vive en
+`~/Documents`, que está sincronizado con iCloud; el mismo comando en `~/dev` tardó 1,8 s. Es
+consistente con L25 —mucho movimiento de archivos de golpe—, pero **no quedó probado**: cuando se
+midió, el demonio de sincronización ya estaba en 0 %, y la suite terminó sola en verde. Queda anotado
+por la ironía, que es instructiva: la semilla cuyo README advierte contra las carpetas sincronizadas
+vive en una.
 
 ---
 
