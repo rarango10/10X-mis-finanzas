@@ -67,12 +67,13 @@ secciones **«Lote N aplicado»** del final cuentan qué se cambió y qué apare
 | L40 | La segunda ronda de una tarea no decía si espera el sí | **`listo para aplicar`** | decidido: espera el sí, siempre |
 | L41 | Los pasos 0 a 3 no commitean | `en observación` | una ocurrencia, sin daño |
 | L42 | Una regla vive en `CLAUDE.md` y en la plantilla, sin verificación | `en observación` | se vuelve urgente al aplicar L40 |
+| L43 | Un skill extendió un principio escrito más allá de la lista | `resuelto` | evidencia positiva, sin acción |
 
 ### Lo que queda
 
 **Listo para aplicar — el insumo del próximo ciclo:** [[L36]] (nombrar `/workflows` al lanzar),
-[[L39]] (el modo revisión de `harness-init` tiene que buscar afirmaciones falsas, no solo sus cuatro
-puntos) y [[L40]] (la segunda ronda de una tarea espera el sí). Los tres tienen el arreglo escrito.
+[[L39]] (el modo revisión de `harness-init` tiene que buscar afirmaciones falsas —las del archivo y
+las que propone—, no solo sus cuatro puntos) y [[L40]] (la segunda ronda de una tarea espera el sí). Los tres tienen el arreglo escrito.
 
 **Abiertos, en el orden en que conviene tomarlos:**
 
@@ -1511,8 +1512,24 @@ comprobaciones:
 > agentes y la tratan como cierta. Las cuatro comprobaciones de abajo son lo mínimo que el harness
 > necesita, no la lista de lo que puede estar mal.
 
-**Y una acción que no es del harness:** el `CLAUDE.md` del demo sigue diciendo que no está
-scaffoldeado. Se arregla en el demo, a mano o con el skill ya corregido.
+**La acción del demo, hecha (2026-09-11, `d315b92`).** El `CLAUDE.md` del demo se corrigió invocando
+`harness-init` con la lista de problemas ya hecha —porque el skill, tal como está, no los encuentra— y
+agregándole a mano la instrucción de este arreglo: «leé el archivo entero buscando afirmaciones que
+el repo contradiga». Eso **no cierra esta lección**: el paso sigue sin estar escrito en el skill.
+
+**Y la prueba dejó un matiz para el arreglo.** Con la instrucción, el skill encontró dos afirmaciones
+falsas que nadie le había señalado ([[L43]]): el arreglo funciona. Pero se le escapó una **que
+escribió él mismo**. El texto nuevo de «Ciclo de trabajo» decía *«este archivo solo declara el stack
+y los comandos»*, en un archivo que tiene «Reglas del proyecto» y al que le estaba agregando «Reglas
+del harness». La revisión miró las frases que ya estaban, no las que proponía.
+
+Entonces el paso a escribir en el skill tiene que cubrir las dos puntas:
+
+> **Leé el archivo entero buscando afirmaciones que el repo contradiga — las que ya están y las que
+> vas a proponer.** Antes de presentar un cambio, releé tu propio texto con el mismo criterio: una
+> frase nueva puede ser falsa desde el día en que se escribe. Y cuando una frase de estado haga
+> falta, escribila en condicional («si no están instalados, `npx playwright install chromium` los
+> instala»): una afirmación de estado envejece, una condicional no.
 
 ---
 
@@ -1595,6 +1612,39 @@ texto, que difiere a propósito, sino qué reglas están.
 
 **Por qué en observación.** Hoy coinciden (verificado el 2026-09-07). Deja de ser hipotético la
 primera vez que se aplique un arreglo de reglas, que es [[L40]]: cuatro lugares.
+
+---
+
+## L43 · Un skill extendió un principio escrito más allá de la lista que se le dio · `resuelto` — evidencia positiva
+
+**Qué pasó.** Al corregir el `CLAUDE.md` del demo (2026-09-11), `harness-init` recibió un prompt con
+cinco puntos. El punto 1 pedía borrar «Estado del proyecto» *porque toda frase de estado envejece*.
+El punto 3 pedía reemplazar «los navegadores de Playwright no están instalados» por «sí lo están».
+
+El skill notó que el punto 3 contradecía la razón del punto 1 —cambiaba una afirmación de estado
+falsa por otra verdadera que también iba a envejecer— y ofreció las dos formas:
+*«Afirmar que ya están instalados (lo que pediste)»* y *«Reformular sin afirmar un estado
+(Recomendado)»*, un condicional que no puede volverse falso. Se eligió la segunda.
+
+Y en la misma pasada encontró dos afirmaciones falsas que nadie le había señalado —la intro
+describía «tres casillas… un botón para ejecutar la operación», y el Stack justificaba sus
+restricciones «para tres casillas y dos botones»— y las presentó *«marcadas como propias»*.
+
+**Por qué se registra.** Dos piezas del harness funcionando a la vez:
+
+- **[[L17]]**: etiquetó el origen de cada opción. No presentó su propuesta como pedido de la persona,
+  ni el pedido de la persona como la opción buena.
+- **La misma confirmación que [[L34]]**: un principio escrito con su porqué se extiende a casos que
+  nadie previó — acá, hasta contradecir una instrucción explícita que lo violaba.
+
+**Y el error estaba en el prompt, no en el skill.** El punto 3 lo redactó quien analiza el harness,
+y era inconsistente con el punto 1 del mismo prompt. El skill atrapó un error de quien le daba las
+instrucciones, que es lo que se espera de un paso con compuerta y lo que la compuerta sola no
+garantiza: la compuerta pregunta «¿aprobás?», y acá la pregunta útil fue «¿esto que me pedís es
+coherente con lo que me pediste antes?».
+
+**Lo que no hizo, para no sobrevenderlo:** se le escapó una afirmación falsa que escribió él mismo.
+Eso quedó en [[L39]].
 
 ---
 
