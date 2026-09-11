@@ -4,12 +4,40 @@ Este repo es dos cosas a la vez:
 
 1. **Un método de trabajo** para construir software con Claude Code — siete skills, siete
    subagentes y un workflow dinámico que llevan una feature del contrato del proyecto al commit
-   de cierre, con una compuerta de aprobación humana en cada paso.
+   de cierre, con una compuerta de aprobación humana en cada paso. Viene empaquetado como
+   **plugin instalable**: el mismo repo es su marketplace.
 2. **Una app de finanzas personales** que sirve de ejemplo real del método. No es el punto;
    es la prueba de que el método produce algo.
 
-Si venís a llevarte el harness a otro proyecto, saltá a [Llevártelo a otro
-proyecto](#llevártelo-a-otro-proyecto). Si venís a entender cómo se trabaja acá, seguí leyendo.
+Si venís a usarlo en tu proyecto, empezá por [Instalarlo](#instalarlo-en-tu-proyecto): son dos
+comandos. Si venís a entender cómo se trabaja, seguí leyendo. Y si querés hacerlo tuyo y que
+evolucione aparte, está [Llevártelo a otro proyecto](#llevártelo-a-otro-proyecto).
+
+---
+
+## Instalarlo en tu proyecto
+
+```bash
+claude plugin marketplace add rarango10/10X-mis-finanzas
+claude plugin install harness-spike@harness-spike
+```
+
+Queda instalado para tu usuario, así que sirve en todos tus proyectos. Después:
+
+1. **Habilitá los workflows dinámicos** si nunca lo hiciste —el paso 4 los necesita— y abrí una
+   sesión nueva. Está explicado en [Antes de empezar](#antes-de-empezar).
+2. **Abrí la sesión en tu proyecto y pedí el paso 0**: «preparemos el proyecto». El skill
+   `harness-init` te entrevista y escribe el `CLAUDE.md` que el resto del harness necesita para
+   saber qué comandos correr. Si ya tenés uno, no lo pisa: lo revisa y te propone cambios.
+3. **Arrancá la primera feature** con «quiero agregar X». Desde ahí, cada paso te dice cuál sigue.
+
+**Pedí los pasos en lenguaje natural.** Adentro del plugin todo queda con prefijo:
+`harness-spike:implement-task`, `harness-spike:dod-checker`. El nombre pelado (`/implement-task`)
+solo resuelve si el skill vive en tu repo. Las frases de la columna «Se pide diciendo» de la tabla
+del ciclo disparan el skill por su descripción, y esas **no dependen del prefijo**.
+
+Para actualizar: `claude plugin marketplace update harness-spike`, después
+`claude plugin update harness-spike@harness-spike`, y reiniciá la sesión.
 
 ---
 
@@ -170,8 +198,15 @@ siendo ciertos **juntos**, y un rojo ahí reabre la tarea afectada.
 
 ## Qué hay adentro de `.claude/`
 
+`.claude/` **es el plugin**: tiene la forma que Claude Code espera, con su manifiesto y su router en
+la raíz. El `marketplace.json` de la raíz del repo lo apunta con `"source": "./.claude"`, así que no
+hay un árbol generado que mantener aparte — una sola copia de cada archivo.
+
 ```
+.claude-plugin/marketplace.json   el repo como marketplace: apunta a ./.claude
 .claude/
+├── .claude-plugin/plugin.json    el manifiesto del plugin: nombre, versión, licencia
+├── SKILL.md                      el router: explica el ciclo y enruta al paso que toca
 ├── skills/
 │   ├── harness-init/      siembra el CLAUDE.md del proyecto: plantilla + entrevista
 │   ├── brainstorming/     idea suelta → diseño acordado
@@ -190,19 +225,16 @@ siendo ciertos **juntos**, y un rojo ahí reabre la tarea afectada.
 │   └── e2e-triager.md     corre, diagnostica y rutea. No repara      [escribe el reporte]
 ├── workflows/
 │   └── tasks-fanout.js    scout → N revisores en paralelo → reducer → 1 escritor
-├── plugin-root/           lo que va en la RAÍZ del plugin al empaquetar
-│   ├── SKILL.md           el router: explica el ciclo y enruta al paso que toca
-│   └── .claude-plugin/plugin.json
 └── checks/
     ├── lint-workflow-literals.cjs
-    └── sync-plugin.sh     resincroniza el plugin y compara los dos árboles
+    └── sync-plugin.sh     refleja .claude/ en tu copia de desarrollo y compara los árboles
 ```
 
 Siete subagentes, **tres** con permiso de escritura, y cada uno escribe un documento distinto.
 Los otros cuatro declaran un `agentType` de solo lectura.
 
-**`plugin-root/` existe por un error que vale contar.** El router y el manifiesto del plugin se
-escribieron una vez directamente adentro del plugin y nunca volvieron al repo, contra el invariante
+**El router y el manifiesto tienen una historia que vale contar.** Se escribieron una vez
+directamente adentro de una copia del plugin y nunca volvieron al repo, contra el invariante
 de que el repo es la fuente. Nadie lo notó durante semanas porque el chequeo de deriva **enumeraba
 directorios conocidos** —`skills`, `agents`, `workflows`, `checks`— y los cuatro daban «sin deriva».
 Un chequeo que enumera lo que conoce nunca encuentra lo que no está en su lista. Por eso
@@ -229,16 +261,15 @@ un error que no significa nada.)
 
 Hay dos vías, y eligen cosas distintas.
 
-| | **Copiarlo** | **Empaquetarlo como plugin** |
+| | **Instalarlo** | **Forkearlo** |
 |---|---|---|
-| Semántica | fork: una copia en el tiempo | dependencia: una fuente |
-| Actualizar | a mano, repo por repo | `claude plugin update` |
-| Sirve para | hacerlo tuyo y que evolucione aparte | usar el mismo harness en todos tus proyectos |
-| Costo | cero | armarlo una vez |
+| Semántica | dependencia: una fuente | fork: una copia en el tiempo |
+| Actualizar | `claude plugin update` | a mano, cuando quieras |
+| Sirve para | usar el mismo harness en todos tus proyectos | hacerlo tuyo y que evolucione aparte |
+| Costo | [dos comandos](#instalarlo-en-tu-proyecto) | renombrar el plugin y publicar tu fork |
 
-Si clonaste este repo para adueñarte del método, ya estás en la primera vía y solo te queda
-[adaptar `CLAUDE.md`](#lo-único-que-hay-que-adaptar-claudemd). Si querés el harness disponible en
-todos tus proyectos sin copiarlo en cada uno, seguí con la segunda.
+Las dos terminan en lo mismo del lado de tu proyecto: [adaptar
+`CLAUDE.md`](#lo-único-que-hay-que-adaptar-claudemd), que es lo único que vive en cada repo.
 
 ### Lo único que hay que adaptar: `CLAUDE.md`
 
@@ -290,51 +321,27 @@ Dos cosas más, si el proyecto nuevo no es Node:
   con un mensaje claro si no la hay**, así que en un proyecto sin interfaz no hace daño: no
   escribe nada.
 
-### Armar tu propio plugin
+### Forkearlo y publicar el tuyo
 
-Un plugin de Claude Code empaqueta skills, subagentes, hooks y comandos, se instala una vez y
-queda disponible en **todos** tus proyectos. Es la forma correcta de no tener doce copias del
-harness derivando cada una por su lado.
+Si querés que el método evolucione a tu manera, forkeá el repo. Como `.claude/` ya es un plugin y el
+repo ya es su marketplace, tu fork se instala igual que este, con tu usuario en lugar de `rarango10`.
 
-**1. Scaffoldeá el plugin.**
+**1. Cambiale el nombre.** En `.claude/.claude-plugin/plugin.json` (`name`) y en
+`.claude-plugin/marketplace.json` (`name`, `owner` y la entrada de `plugins`). **No es cosmético:**
+dos plugins con el mismo nombre no conviven. Si instalás tu fork como `harness-spike` teniendo este
+instalado —o al revés—, uno de los dos queda desactivado **en silencio**, y el único lugar donde se
+ve es `claude plugin list`, con un error que dice que el nombre ya está tomado.
 
-```bash
-claude plugin init mi-harness --with skills,agents \
-  --description "Ciclo de desarrollo asistido: brainstorm → spec → plan → TDD → verificación"
-```
-
-Lo crea en `~/.claude/skills/mi-harness/` con su `.claude-plugin/plugin.json`, y **auto-carga en
-la sesión siguiente** como `mi-harness@skills-dir`. Mirá con `ls` qué estructura te dejó antes de
-copiar nada: el scaffold decide los nombres de las carpetas, no vos.
-
-**2. Mové las piezas adentro.** Los siete skills, los siete agentes, el workflow y los checks —
-más el contenido de `plugin-root/`, que va en la **raíz** del plugin: el `SKILL.md` del router y el
-`plugin.json`. Lo que **no** va es `CLAUDE.md`: ese es de cada proyecto, y es justamente lo que
-permite que el mismo plugin sirva para un repo de TypeScript y otro de Python.
-
-Mientras sigas editando el harness en el repo, el plugin es una copia y **se desincroniza sin
-avisar**: editás el repo, la sesión de prueba carga la versión vieja, y cualquier conclusión que
-saques es falsa. Para eso está el script:
+**2. Validá los dos manifiestos.**
 
 ```bash
-bash .claude/checks/sync-plugin.sh ~/.claude/skills/mi-harness
+claude plugin validate . --strict          # el marketplace
+claude plugin validate .claude --strict    # el plugin
 ```
 
-Copia y después compara los dos árboles completos en las dos direcciones. Falla si sobra un archivo
-en el plugin o si falta uno del repo — a propósito, porque un chequeo que nunca falla es
-decorativo.
-
-**3. Validá y medí el costo.**
-
-```bash
-claude plugin validate ~/.claude/skills/mi-harness
-claude plugin details mi-harness      # inventario de componentes + costo proyectado en tokens
-claude plugin list
-```
-
-El `details` importa: siete skills y siete agentes pesan en contexto, y conviene verlo antes de
-que estén en todos tus proyectos. Para dar una idea de magnitud, este harness cuesta **~1.9k tokens
-always-on** por sesión, y el resto se paga solo al invocar cada skill.
+**3. Medí el costo.** `claude plugin details <nombre>` da el inventario y el costo proyectado en
+tokens. Para dar una idea de magnitud, este harness cuesta **~1.9k tokens always-on** por sesión, y
+el resto se paga solo al invocar cada skill.
 
 **Pero `details` miente por omisión, y de una forma que confunde.** No cuenta el `SKILL.md` de la
 raíz del plugin ni los workflows: reporta los skills de `skills/` y los agentes, y nada más. En una
@@ -343,37 +350,41 @@ completo vas a subestimar la superficie cargada — a nosotros nos hizo concluir
 los plugins no soportaban workflows. **Verificá contra el listado de skills de la sesión**, que es
 lo que efectivamente se cargó.
 
-**4. Probá que no se rompió nada.** `specify` y `brainstorming` traen sus propias evals, así que
-la migración es verificable en vez de a ojo:
+**4. Probá que no se rompió nada.** `specify` y `brainstorming` traen sus propias evals, así que un
+cambio de prosa es verificable en vez de a ojo:
 
 ```bash
-claude plugin eval mi-harness
+claude plugin eval <nombre>
 ```
 
-Corre los casos contra el plugin y contra una rama sin plugin como baseline.
+Corre los casos contra el plugin y contra un brazo sin plugin como baseline.
 
-**5. Sacá las copias del proyecto.** Si dejás `.claude/skills/` y `.claude/agents/` en el repo *y*
-tenés el plugin instalado, vas a tener las dos versiones cargadas y no vas a saber cuál se está
-usando. Borrá las del repo y quedate solo con `CLAUDE.md`.
+**5. Publicalo con un tag.** `claude plugin tag` arma el tag de release (`{nombre}--v{version}`) y
+valida de paso que `plugin.json` y la entrada del marketplace coincidan.
 
-**Y acordate de `.claude/workflows/`, que es el caso peor.** Para skills y agentes hay shadowing:
-una gana y la otra queda tapada. **Para workflows no.** La copia del proyecto se registra como
-`tasks-fanout` y la del plugin como `mi-harness:tasks-fanout`, así que son **nombres distintos y las
-dos quedan vivas**. Podés estar corriendo la vieja del repo creyendo que usás la del plugin: un
-arreglo en el plugin no cambiaría nada, y no habría ninguna señal de por qué.
+#### Mientras editás el harness
 
-#### Compartirlo con otra gente
-
-Poné el plugin en un repo de git con un `.claude-plugin/marketplace.json`, y del otro lado:
+Instalado desde el marketplace, el plugin es una copia en la caché: **editar el repo no cambia lo que
+carga la sesión** hasta que corras `claude plugin update` y reinicies. Para iterar sin ese ciclo está
+el script de desarrollo, que refleja `.claude/` en una copia que Claude Code auto-carga:
 
 ```bash
-claude plugin marketplace add <usuario>/<repo>     # acepta URL, ruta local o repo de GitHub
-claude plugin install mi-harness@<marketplace>
+bash .claude/checks/sync-plugin.sh ~/.claude/skills/<nombre>
 ```
 
-`claude plugin tag` arma el tag de release (`{nombre}--v{version}`) y valida de paso que
-`plugin.json` y la entrada del marketplace coincidan. Después, `claude plugin update mi-harness`
-en cualquier máquina.
+Copia y después compara los dos árboles completos en las dos direcciones. Falla si sobra un archivo
+en la copia o si falta uno del repo — a propósito, porque un chequeo que nunca falla es decorativo.
+Ojo con el punto 1: esa copia y una instalación desde el marketplace **con el mismo nombre** no
+cargan juntas, y gana la instalada.
+
+**No copies `.claude/` adentro de otro proyecto que además tenga el plugin instalado.** Vas a tener
+las dos versiones cargadas y no vas a saber cuál se está usando.
+
+**Y con los workflows es peor.** Para skills y agentes hay shadowing: una gana y la otra queda
+tapada. **Para workflows no.** La copia del proyecto se registra como `tasks-fanout` y la del plugin
+como `harness-spike:tasks-fanout`, así que son **nombres distintos y las dos quedan vivas**. Podés
+estar corriendo la vieja creyendo que usás la del plugin: un arreglo en el plugin no cambiaría nada,
+y no habría ninguna señal de por qué.
 
 #### El namespacing, que es lo que sorprende al empaquetar
 
@@ -403,6 +414,12 @@ están acá porque un método que no dice dónde es frágil se lee como si no lo
 completa y viva, con lo que habría que hacer en cada caso, está en
 [`lecciones.md`](./lecciones.md):
 
+- **La primera corrida con el harness nuevo salió bien, y dejó tres arreglos escritos.** Se hizo el
+  2026-09-11 sobre otro proyecto, con una feature de punta a punta —nueve tareas, 37 tests, 6/6
+  e2e— en Sonnet 5. El verificador dejó de redondear para arriba: dos tareas volvieron
+  `cumple-parcial` por hallazgos reales. Quedan listos para aplicar: nombrar `/workflows` al lanzar
+  el plan (L36), que el modo revisión de `harness-init` busque afirmaciones falsas (L39), y que la
+  segunda ronda de una tarea espere el sí (L40).
 - **El ciclo e2e corrió entero, pero su ruteo no.** Se ejercitó de punta a punta sobre otro
   proyecto: plan de tres casos, tres specs generados, tres en verde en la primera corrida — con los
   selectores por rol y nombre accesible, sin un solo `waitForTimeout`. Lo que **no** se probó nunca
@@ -423,8 +440,10 @@ completa y viva, con lo que habría que hacer en cada caso, está en
   declaran `tools: Read, Grep, Glob`, así que no tienen ninguna ruta de escritura: ahí la
   restricción es un mecanismo. `dod-checker` y `spec-scout` tienen además `Bash`, que sí puede
   escribir, y en esos dos la prohibición vive en la prosa. Se mide con un manifiesto de hashes del
-  working tree antes y después de cada corrida y hasta ahora dio limpio, pero lo comprobado es que
-  nadie quiso, no que no hubiera podido. Convertirlo en garantía pide acotar `Bash` en esos dos —
+  working tree antes y después de cada corrida, y **ya falló una vez**: verificando una tarea,
+  `dod-checker` corrió `git stash` y `git stash pop`. Esa medición no lo habría visto, porque deja
+  cambio neto cero; lo delató el registro de la tarea. El arreglo más barato es escribir la
+  prohibición sobre la ejecución y no sobre el efecto; la garantía pide acotar `Bash` en esos dos
   con un `permissions.deny` o un hook `PreToolUse`.
 - **Las compuertas son instrucciones, no mecanismos.** Vale para las fijas y para las
   configurables del ciclo e2e.
@@ -437,4 +456,12 @@ Un núcleo de funciones puras sobre un `Ledger` inmutable, en `src/split/`: alta
 carga de gastos con reparto de centavos, pagos entre participantes y cálculo de saldos.
 TypeScript estricto, sin dependencias de runtime, 68 tests en Vitest.
 
-Está para que el harness tenga sobre qué operar. Si te llevás el método, esto se borra.
+Está para que el harness tenga sobre qué operar. Si te llevás el método, esto se borra — y si lo
+instalás como plugin, directamente no viene.
+
+---
+
+## Licencia
+
+[Apache-2.0](./LICENSE). Copyright 2026 Raul Arango — ver [`NOTICE`](./NOTICE). Podés usarlo,
+modificarlo y redistribuirlo, también con fines comerciales, conservando el aviso de licencia.
