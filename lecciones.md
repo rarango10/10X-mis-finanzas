@@ -7,7 +7,8 @@ resuelto con el commit, no se borra: saber por qué se hizo algo vale tanto como
 Estados: `abierto` (falta decidir el arreglo) · `en observación` (sabemos que pasa, falta decidir
 si se toca) · **`listo para aplicar`** (el arreglo está escrito acá, solo falta hacerlo) ·
 `resuelto` · **`límite asumido`** (el análisis está cerrado y la conclusión fue no tocar nada — no
-es un pendiente, y reabrirlo cuesta repetir el análisis).
+es un pendiente, y reabrirlo cuesta repetir el análisis) · `descartada` (la premisa resultó falsa;
+se conserva porque saber por qué era falsa evita volver a creerla).
 
 > **No aplicar nada mientras haya una prueba del harness en curso.** Cambiar un skill o el workflow
 > a mitad de una corrida invalida el resultado: después no se puede distinguir qué causó qué. Los
@@ -32,7 +33,7 @@ secciones **«Lote N aplicado»** del final cuentan qué se cambió y qué apare
 | L6 | El MCP de Playwright elegiría mejores selectores | `abierto` | segunda ronda |
 | L7 | El ciclo e2e nunca había corrido entero | `resuelto` | corrió en el demo · README en Lote 7 |
 | L8 | Las compuertas son instrucciones, no mecanismos | **`límite asumido`** | análisis cerrado |
-| L9 | Solo-lectura: ¿conducta o impedimento? | `abierto` | acotada a `dod-checker` y `spec-scout` |
+| L9 | Solo-lectura: ¿conducta o impedimento? | `abierto` | **violada el 2026-09-11** · `git stash` en `dod-checker` |
 | L10 | Re-planificar desaprobaba un plan intacto | `resuelto` | Lote 1 · `task-writer` |
 | L11 | El próximo id libre se podía reutilizar | `resuelto` | Lote 1 · `tasks-fanout.js` + `spec-scout` |
 | L12 | Un test que pasa no prueba lo que dice probar | `abierto` | segunda ronda — **L29 le dejó el lever** |
@@ -60,26 +61,37 @@ secciones **«Lote N aplicado»** del final cuentan qué se cambió y qué apare
 | L34 | Razonó su frontera mejor de lo que se le pidió | `resuelto` | evidencia positiva, sin acción |
 | L35 | Dos archivos del plugin sin fuente en el repo | `resuelto` | Lote 5 · `plugin-root/` + `sync-plugin.sh` |
 | L36 | El progreso del workflow existía y ningún paso lo nombraba | **`listo para aplicar`** | el arreglo está escrito en la entrada |
-| L37 | Un slash command que no resuelve no da error: improvisa | `abierto` | falta confirmar qué lista `/` en el demo |
+| L37 | Un slash command que no resuelve no da error: improvisa | `descartada` | la premisa era falsa: corrió el router |
 | L38 | «Preguntá y esperá el sí» se tradujo a una pregunta estructurada inválida | `en observación` | fricción, se recuperó solo |
+| L39 | El modo revisión de `harness-init` aprueba un contrato que miente | **`listo para aplicar`** | el arreglo está escrito en la entrada |
+| L40 | La segunda ronda de una tarea no decía si espera el sí | **`listo para aplicar`** | decidido: espera el sí, siempre |
+| L41 | Los pasos 0 a 3 no commitean | `en observación` | una ocurrencia, sin daño |
+| L42 | Una regla vive en `CLAUDE.md` y en la plantilla, sin verificación | `en observación` | se vuelve urgente al aplicar L40 |
 
-### Lo que queda, que son cuatro cosas y no la misma clase
+### Lo que queda
 
-- **[[L12]] primero.** Es la de mejor relación valor/costo, y quedó **a un paso**: el commit por
-  tarea del Lote 5 creó el diff que le faltaba, y `dod-checker` ya tiene `Bash` con `git log`
-  autorizado. Le falta un paso de procedimiento que le diga que mire el diff de la tarea en vez del
-  estado final, más ampliar esa autorización a `git show` / `git diff`.
-- **[[L9]]** — no implementar todavía: falta confirmar si un hook `PreToolUse` puede distinguir qué
-  subagente hace la llamada. Sin eso, un `permissions.deny` sobre patrones de escritura en Bash es
-  frágil.
-- **[[L6]]** — cuando el ciclo e2e tenga un fallo real que diagnosticar. Antes no hay con qué medir
-  si mejora, porque el writer ya elige bien los selectores sin ayuda.
-- **[[L8]]** — cerrada. No reabrir salvo que aparezca un borde de tool-call que signifique
-  «aprobado».
+**Listo para aplicar — el insumo del próximo ciclo:** [[L36]] (nombrar `/workflows` al lanzar),
+[[L39]] (el modo revisión de `harness-init` tiene que buscar afirmaciones falsas, no solo sus cuatro
+puntos) y [[L40]] (la segunda ronda de una tarea espera el sí). Los tres tienen el arreglo escrito.
 
-Y una tarea que no es una lección: **la corrida final de verificación** —rehacer el demo desde una
-carpeta vacía con el harness nuevo, con la prueba de ruteo plegada adentro—, que vive en la sección
-«Verificación» de [`plan-de-mejoras.md`](docs/2026-09-06-mejoras-del-harness/plan-de-mejoras.md).
+**Abiertos, en el orden en que conviene tomarlos:**
+
+- **[[L9]] subió de prioridad.** Tuvo su primera violación observada, y el arreglo más barato ya
+  está identificado: escribir la prohibición de `dod-checker` sobre la **ejecución**, no sobre el
+  efecto neto.
+- **[[L12]]** — el commit por tarea le dejó el diff que le faltaba, y `dod-checker` ya tiene `Bash`
+  con `git log` autorizado.
+- **[[L6]]** — cuando el ciclo e2e tenga un fallo real que diagnosticar.
+- **[[L8]]** — cerrada, con el matiz que le agregó [[L36]]: los hooks sí mapean sobre bordes de
+  tool-call; lo que no tiene borde es la aprobación.
+
+**En observación:** [[L38]], [[L41]] y [[L42]]. [[L42]] se vuelve urgente la primera vez que se
+aplique un arreglo de reglas, que es [[L40]].
+
+**Lo que ninguna corrida ejercitó todavía:** el ruteo del ciclo e2e (`causa: test` / `codigo` /
+`spec`), la resta de dependencias de [[L24]], la detección de un veredicto envejecido de [[L33]],
+`harness-init` sembrando desde cero, y la comparación A/B de *mismo input, distinto harness*. El
+detalle está en «Primera corrida con el harness nuevo», al final.
 
 ---
 
@@ -288,7 +300,7 @@ aprobado».
 
 ---
 
-## L9 · Que los agentes de solo lectura no escriban es conducta, no impedimento · `abierto` — acotada a dos agentes
+## L9 · Que los agentes de solo lectura no escriban es conducta, no impedimento · `abierto` — acotada a dos agentes, violada una vez
 
 **Qué pasó.** Se mide con un manifiesto de hashes del working tree antes y después de cada corrida
 —nunca preguntándole a un agente qué herramientas cree tener— y hasta ahora dio limpio. Pero a todos
@@ -329,6 +341,33 @@ frontmatter**: se dedujo del hecho de que a todos se les dice que no escriban. E
 forma que [[L22]] —auditar el relato en vez del repo— aplicado a nuestra propia documentación. Un
 dato que estaba a un `grep` de distancia sostuvo durante semanas una conclusión más pesimista que la
 realidad.
+
+**Primera violación observada (2026-09-11).** Verificando T9 de `calculadora-operaciones` en el
+demo, `dod-checker` corrió:
+
+```
+git stash && npx biome check src/App.test.tsx 2>&1 | tail -30; echo "---restore---"; git stash pop
+```
+
+Uno de los dos agentes a los que se acotó esta lección, y por la ruta exacta que se predijo: `Bash`.
+
+**Lo que hizo bien y lo que no.** La pregunta era buena —¿la deuda de formato es anterior a T9?— y
+la respuesta llegó al veredicto: el Registro la asienta como «deuda arrastrada sin registrar desde
+T8». El método no: `git log -1 -- src/App.test.tsx` contestaba lo mismo sin tocar nada.
+
+**Por qué es peor de lo que parece.** El stash se llevó todo lo modificado y sin commitear: los specs
+que T9 acababa de editar, más dos cambios que flotaban desde los pasos 0 y 2 ([[L41]]). Si `biome`
+colgaba o el `pop` chocaba, ese trabajo quedaba varado en un stash que nadie sabía que existía.
+
+**Y el instrumento de medición tiene un punto ciego.** Esta lección se medía con hashes del working
+tree antes y después de cada corrida. **Stash + pop deja cambio neto cero**, así que ese método
+habría reportado limpio. Lo delató el Registro de la tarea, que lo cuenta de pasada.
+
+**La raíz probable está en la redacción.** La prosa de `dod-checker` prohíbe *«ningún comando que
+deje un cambio en el repo»*. Stash + pop no deja cambio neto, así que la regla literal lo permite:
+está escrita sobre el **efecto** y tendría que estar escrita sobre la **ejecución** — *ningún comando
+que modifique el repo, aunque lo restaure después*. Es el arreglo más barato de los que hay sobre la
+mesa, y el que habría evitado este caso.
 
 ---
 
@@ -1356,7 +1395,30 @@ aprobaciones, no sobre cualquier cosa anclada a una herramienta.
 
 ---
 
-## L37 · Un slash command que no resuelve no da error: improvisa · `abierto`
+## L37 · Un slash command que no resuelve no da error: improvisa · `descartada`
+
+**Corrección (2026-09-11): la premisa es falsa.** El transcript de la sesión registra que lo que se
+invocó fue `/harness-spike` —el router—, no `/harness-init`
+(`<command-name>/harness-spike</command-name>`). No hubo un slash command sin resolver ni
+improvisación: el router hizo exactamente su trabajo, que es relevar el estado y ofrecer el paso
+siguiente. Siete minutos después se invocó `/harness-spike:harness-init`, que resolvió y corrió su
+modo revisión.
+
+**Por qué se conserva en vez de borrarse.** El error de método vale más que el hallazgo que no fue:
+esta entrada se construyó sobre el nombre que traía el relato —«esta es la respuesta a
+`/harness-init`»— **sin mirar el transcript, que estaba disponible**. Es [[L22]], auditar el relato
+en vez del repo, cometido por quien analiza el harness.
+
+**Lo que queda en pie, y es chico.** El router afirmó *«el ciclo ya recorrió sus ocho pasos para esta
+feature»*, y el paso 8 (`close-feature`) no existía cuando se hizo esa corrida: los dos commits de
+cierre se hicieron a mano, sin corrida de higiene como compuerta. Inferir un cierre que no ocurrió es
+de la familia de [[L17]]. Una ocurrencia: se anota, no se arregla.
+
+**La hipótesis del namespacing en slash commands no quedó probada en ninguna dirección**, porque
+nadie tipeó el nombre pelado. Si vuelve a interesar, probarla cuesta un intento.
+
+*Lo que sigue es lo que se escribió el 2026-09-07, antes de mirar el transcript.*
+
 
 **Qué pasó.** En el demo (2026-09-07) se invocó `/harness-init` y **el skill no corrió**. La sesión
 listó el repo, leyó `tasks.md` y `e2e-test-report.md`, concluyó que el ciclo estaba completo y ofreció
@@ -1417,6 +1479,122 @@ evita un intento perdido en cada corrida.
 
 **Por qué queda en `en observación` y no en `listo para aplicar`.** Una sola ocurrencia, con
 recuperación limpia y costo casi nulo. Si vuelve a pasar en la próxima corrida deja de ser anécdota.
+
+## L39 · El modo revisión de `harness-init` aprueba un contrato que miente · `listo para aplicar`
+
+**Qué pasó.** En el demo (2026-09-11) `harness-init` corrió en modo revisión sobre un `CLAUDE.md` en
+uso. Marcó ✓ sus cuatro comprobaciones —ranuras de comandos, sin sección de estructura, tabla del
+ciclo, configs—, agregó `retries: 0` a `playwright.config.ts` y concluyó que *«el contrato ya cumplía
+las cuatro cosas que el harness necesita»*.
+
+Y el archivo seguía diciendo, en su segunda sección: *«**El proyecto todavía no está scaffoldeado.**
+No existe `package.json` ni ninguna dependencia instalada»* — con once tareas en `hecho`, `dist/` y
+tres e2e en verde. Y describía el ciclo en siete pasos.
+
+**No fue descuido: fue diseño.** El skill hizo exactamente lo que dice. Ninguna de sus cuatro
+comprobaciones pregunta si lo que el archivo **afirma** es cierto hoy. Es [[L35]] —*un chequeo que
+enumera lo que conoce nunca encuentra lo que no está en su lista*— en un skill escrito el mismo día
+que L35.
+
+**El costo fue real y se ve.** El scout del workflow tuvo que escribir en su relevamiento *«PROYECTO
+YA SCAFFOLDEADO (a diferencia de lo que advierte CLAUDE.md como estado por defecto)»*. Cada agente
+que lee el contrato arranca contradiciéndolo. Esta vez el scout lo notó; un agente que confíe en el
+contrato —que es lo que el contrato le pide— va a reportar el repo como vacío.
+
+**El arreglo, listo para ejecutar.** No una quinta comprobación, que repetiría el defecto, sino la
+forma contraria, la que L35 ya escribió. En `harness-init`, modo revisión, antes de las cuatro
+comprobaciones:
+
+> **Leé el archivo entero buscando afirmaciones que el repo contradiga.** Toda frase sobre el estado
+> del proyecto —qué existe, qué falta, qué funciona, cuántos pasos tiene el ciclo— se contrasta
+> contra el repo. Una afirmación falsa en el contrato es peor que una ausente: la leen todos los
+> agentes y la tratan como cierta. Las cuatro comprobaciones de abajo son lo mínimo que el harness
+> necesita, no la lista de lo que puede estar mal.
+
+**Y una acción que no es del harness:** el `CLAUDE.md` del demo sigue diciendo que no está
+scaffoldeado. Se arregla en el demo, a mano o con el skill ya corregido.
+
+---
+
+## L40 · La segunda ronda de una tarea no decía si espera el sí · `listo para aplicar`
+
+**Qué pasó.** En la misma corrida del demo (2026-09-11), en `--modo corrido`, dos tareas volvieron
+`cumple-parcial` y se trataron distinto:
+
+| | Qué hizo |
+|---|---|
+| **T7** | *«Freno acá — la regla de corte aplica incluso en modo corrido»*. Asentó, commiteó el parcial, preguntó *«¿Sigo con esa segunda ronda de T7?»* y esperó el sí |
+| **T9** | *«Freno la cadena, no sigo con tareas nuevas — pero cerrar esto es una segunda ronda de la misma tarea T9, mecánica»*. Siguió sin preguntar, corrió `npm run format` sobre todo el repo y reverificó |
+
+Mismo modelo, mismo skill, misma sesión.
+
+**La causa está en el texto.** `implement-task` dice: *«pará ahí: la tarea queda en `en curso`, lo
+asentás, avisás, y no arrancás la siguiente»*. Son dos instrucciones, y el hueco entre ellas es lo
+que varió: T7 obedeció el «pará», T9 obedeció el «no arrancás la siguiente» — y una segunda ronda de
+la misma tarea no es la siguiente.
+
+**Por qué importa aunque esta vez no dolió.** Los dos arreglos eran mecánicos. Pero un veredicto
+parcial es el momento en que puede aparecer que **el que está mal es el criterio, no el código**, y
+lo que corresponde es `specify`, no un parche. Seguir sin preguntar le quita a la persona justo la
+decisión que ese veredicto la habilita a tomar.
+
+**La decisión, tomada por la persona el 2026-09-11: la segunda ronda espera el sí, siempre** — en
+modo normal y en `--modo corrido`. Sin excepciones, porque una regla sin excepciones es la que no se
+puede reinterpretar.
+
+**El arreglo, listo para ejecutar**, en los cuatro lugares donde vive la regla:
+
+- `implement-task`, sección de modo y paso 8: *«Un veredicto menor que `cumple` para la corrida, y
+  **la segunda ronda de la misma tarea también espera el sí**. Pararse no es solo no arrancar la
+  siguiente: es devolverle la decisión a la persona, porque un veredicto parcial puede estar diciendo
+  que el criterio está mal.»*
+- `CLAUDE.md` de este repo, regla de la unidad del paso 5.
+- `harness-init/assets/CLAUDE.template.md`, la misma regla.
+- El router, regla 3.
+
+Que sean cuatro lugares y que nada compruebe que digan lo mismo es [[L42]].
+
+---
+
+## L41 · Los pasos 0 a 3 no commitean · `en observación`
+
+**Qué pasó.** En el demo (2026-09-11), `harness-init` agregó `retries: 0` a `playwright.config.ts` y
+dijo *«No commiteé el cambio — decime si querés que lo incluya en un commit»*; `specify` agregó una
+nota de vigencia al `requirements.md` de la feature anterior. Ninguno de los dos se commiteó.
+Flotaron a lo largo de las nueve tareas —`dod-checker` los señaló como ajenos en T5, correctamente—
+hasta que `close-feature` los barrió en el commit de cierre.
+
+**Por qué importa poco, y por qué igual se anota.** Terminaron en el historial, así que no se perdió
+nada. Pero el commit de cierre mezcla el material del paso 7 con ajustes de los pasos 0 y 2, y
+`git log` pierde qué paso produjo qué. Y mientras flotaban quedaron expuestos al `git stash` de
+[[L9]].
+
+**La forma.** Desde [[L29]], el paso 5 tiene commit por tarea y el 8 tiene commit de cierre. Los
+pasos 0 a 3 producen cambios y no tienen ninguna instrucción de commit, así que quedan a criterio de
+quien los lleva.
+
+**Por qué en observación.** Una ocurrencia, sin daño. El arreglo obvio —«al recibir el sí, commiteá
+lo que produjiste»— es barato, pero conviene ver si se repite.
+
+---
+
+## L42 · Una regla vive en `CLAUDE.md` y en la plantilla, sin verificación · `en observación`
+
+**Qué pasó.** Las reglas del método viven dos veces: en el `CLAUDE.md` de este repo, para que rijan
+acá, y en `harness-init/assets/CLAUDE.template.md`, que es el único vehículo por el que llegan a
+otro proyecto. Los lotes 5, 5b y 6 las escribieron en los dos lados. Nada lo verifica.
+
+**Por qué importa.** Si una regla nueva entra solo en el `CLAUDE.md` de este repo, **nunca llega a
+ningún otro proyecto y nada avisa**. `sync-plugin.sh` compara `.claude/` contra el plugin, pero el
+`CLAUDE.md` y la plantilla son distintos a propósito —la plantilla tiene ranuras y un bloque de «qué
+no va»; este repo tiene reglas propias—, así que no se pueden comparar por igualdad.
+
+**Es la forma de [[L35]]**: un invariante declarado, sin verificación. Un chequeo posible: extraer
+los títulos en negrita de las reglas del harness en cada archivo y comparar los conjuntos — no el
+texto, que difiere a propósito, sino qué reglas están.
+
+**Por qué en observación.** Hoy coinciden (verificado el 2026-09-07). Deja de ser hipotético la
+primera vez que se aplique un arreglo de reglas, que es [[L40]]: cuatro lugares.
 
 ---
 
@@ -1801,6 +1979,39 @@ invirtió, con las dos razones escritas en el propio plan: correrlo antes lo med
 **viejo**, que va a dejar de existir; y **rehacer el demo termina con todo en verde**, que es el
 único estado desde el cual no se puede ejercitar el camino del fallo. Plegar la prueba de ruteo
 adentro de la corrida final da las dos cosas de una.
+
+## Primera corrida con el harness nuevo — 2026-09-11
+
+La corrida final del plan, hecha sobre el demo (`~/dev/my-harness-demo`) y no desde una carpeta
+vacía: una feature nueva —resta, multiplicación y división— recorrida del paso 0 al 8. Nueve tareas,
+once commits, 37 tests, 6/6 e2e, todo verificado de forma independiente al terminar. La sesión corrió
+en **Sonnet 5**. El estado anterior quedó protegido en el tag `lecciones-v1`.
+
+**Lo que se confirmó en uso, sin que nadie lo pidiera:**
+
+| Lección | Evidencia |
+|---|---|
+| [[L16]] [[L17]] [[L18]] | Cuatro preguntas con alternativas antes de proponer; supuestos etiquetados *«lo asumo por consistencia — no lo preguntaste»*; el pedido de aprobación nombra `specify` |
+| [[L19]] [[L20]] [[L11]] | El workflow corrió desde el plugin sin parchear; seis fases en el estado; `> Ids emitidos: hasta T9` |
+| [[L27]] | T1 y T2 con `Cubre: —` y *«habilita R2.1, que se cierra en T4»* |
+| [[L30]] [[L28]] | Cero «¿verifico?»; T1–T3 con un sí cada una; el modo corrido no se infirió: la sesión lo explicó cuando la persona preguntó por encadenar, y ella lo pidió |
+| [[L22]] | Las 11 invocaciones a `dod-checker`: *«Verificá la tarea TN del spec en docs/…»*. Nada más |
+| [[L29]] [[L26]] | Un commit por tarea con su id; T7 con dos; la línea del rojo literal en cada Registro; `Verificación previa (superada)` bien marcada |
+| [[L31]] y Lote 2 | **El resultado más importante:** T7 y T9 volvieron `cumple-parcial` por hallazgos reales. El diagnóstico de fondo del plan —*«tres veces detectó bien un problema y no lo dejó llegar al veredicto»*— no se repitió |
+| [[L13]] | La deuda de formato de T8 no hizo fallar su veredicto —el paso 6 corre el comando de corrección, no el de higiene— y apareció igual antes del cierre |
+
+**Lo que falló:** [[L36]] (el progreso no se nombró), [[L39]] (el modo revisión aprobó un contrato
+falso), [[L40]] (la regla de corte se leyó de dos formas) y [[L9]] (primera violación observada).
+
+**Lo que no se ejercitó:** el ruteo del e2e —seis de seis en verde—, [[L24]], [[L33]] como
+detección, `harness-init` en modo siembra y la comparación A/B.
+
+**Una corrección de método, sobre el análisis y no sobre el harness.** [[L37]] se escribió con la
+prueba en curso, sobre el nombre de comando que traía el relato, y resultó falsa en cuanto se miró el
+transcript. Con la corrección de [[L9]] y el conteo de agentes de [[L36]], son tres conclusiones en
+dos días contradichas por un dato que estaba a un `grep` de distancia. La regla que se desprende es
+la misma que el harness le impone a `dod-checker`: **las afirmaciones sobre qué pasó se contrastan
+contra el registro, no contra el relato de quien lo cuenta** — y eso vale también para quien analiza.
 
 ---
 
