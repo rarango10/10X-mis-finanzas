@@ -1,5 +1,10 @@
 # Manejo de mis finanzas personales
 
+> **Repo archivado.** El harness que describe este archivo se mudó a
+> [rarango10/GoHarness](https://github.com/rarango10/GoHarness) y ya no vive acá: los skills, los
+> subagentes y el workflow no están en este repo. Lo que sigue queda como registro de cómo estaba
+> configurado.
+
 Proyecto de ejemplo para una app de **finanzas personales** que ayuda a crear los presupuestos y categorizar los gastos
 
 ## Stack
